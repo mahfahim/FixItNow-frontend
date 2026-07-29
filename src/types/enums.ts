@@ -50,8 +50,8 @@ export enum NotificationType {
 }
 
 export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
+  page?: number | string;
+  limit?: number | string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 };

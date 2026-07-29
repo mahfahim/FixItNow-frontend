@@ -1,6 +1,5 @@
 // src/types/admin.types.ts
-import { Role, UserStatus } from './enums';
-
+import { Role, UserStatus } from "./enums";
 
 export type IUserFilterOptions = {
   searchTerm?: string;
@@ -8,15 +7,6 @@ export type IUserFilterOptions = {
   status?: UserStatus;
 };
 
-
 export type IUpdateUserStatusPayload = {
   status: UserStatus;
-};
-
-export type ICreateCategoryPayload = {
-  name: string;
-  slug?: string;
-  icon?: string;
-  description?: string;
-  isActive?: boolean;
 };

@@ -1,15 +1,15 @@
 // src/types/category.types.ts
-export type ICategoryFilterRequest = {
-  search?: string;
+export type ICategoryFilterOptions = {
+  searchTerm?: string;
   isActive?: boolean;
 };
 
-export type ICreateCategory = {
+export type ICreateCategoryPayload = {
   name: string;
+  slug?: string;
   icon?: string;
   description?: string;
   isActive?: boolean;
 };
 
-export type IUpdateCategory = Partial<ICreateCategory>;
-
+export type IUpdateCategoryPayload = Partial<ICreateCategoryPayload>;

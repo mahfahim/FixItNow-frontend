@@ -5,7 +5,7 @@ export type ICreateServicePayload = {
   title: string;
   description: string;
   price: number;
-  duration: number; // minutes
+  duration: number; // in minutes
   images?: string[];
   serviceArea?: string[];
 };
@@ -17,18 +17,20 @@ export type IUpdateServicePayload = Partial<ICreateServicePayload> & {
 export type IServiceFilterOptions = {
   search?: string;
   categoryId?: string;
+  technicianId?: string;
   minPrice?: string | number;
   maxPrice?: string | number;
   page?: string | number;
   limit?: string | number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 };
 
-export const serviceSearchableFields = ['title', 'description'];
+export const serviceSearchableFields = ["title", "description"];
 export const serviceFilterableFields = [
-  'search',
-  'categoryId',
-  'minPrice',
-  'maxPrice',
+  "search",
+  "categoryId",
+  "technicianId",
+  "minPrice",
+  "maxPrice",
 ];

@@ -1,4 +1,6 @@
 // src/types/auth.types.ts
+import { Role } from "./enums";
+
 export interface ILoginUser {
   email: string;
   password: string;
@@ -8,7 +10,7 @@ export interface IRegisterUser {
   name: string;
   email: string;
   password: string;
-  role: "CUSTOMER" | "TECHNICIAN";
+  role: Role;
 }
 
 export type IUpdateUserProfile = {
@@ -23,3 +25,5 @@ export type ICreateAddress = {
   postalCode?: string;
   isDefault?: boolean;
 };
+
+export type IUpdateAddress = Partial<ICreateAddress>;

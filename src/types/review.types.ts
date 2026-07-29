@@ -1,7 +1,7 @@
 // src/types/review.types.ts
 export type ICreateReviewPayload = {
   bookingId: string;
-  rating: number; // Integer: 1 to 5
+  rating: number; // 1 to 5
   comment?: string;
 };
 
@@ -15,9 +15,4 @@ export type IReviewFilterOptions = {
   rating?: number;
   technicianId?: string;
   customerId?: string;
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
 };
-

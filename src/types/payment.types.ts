@@ -6,9 +6,9 @@ export type ICreatePaymentPayload = {
   provider: PaymentProvider;
 };
 
-
 export type IConfirmPaymentPayload = {
   sessionId: string;
+  transactionId?: string;
 };
 
 export type IRefundPaymentPayload = {
@@ -17,8 +17,7 @@ export type IRefundPaymentPayload = {
   amount?: number;
 };
 
-
-export type IPaymentFilterRequest = {
+export type IPaymentFilterOptions = {
   searchTerm?: string;
   status?: PaymentStatus;
   provider?: PaymentProvider;

@@ -1,7 +1,7 @@
 // src/types/technician.types.ts
-import { Weekday } from './enums';
+import { Weekday } from "./enums";
 
-export type IUpdateTechnicianProfile = {
+export type IUpdateTechnicianProfilePayload = {
   bio?: string;
   yearsOfExperience?: number;
   hourlyRate?: number;
@@ -25,4 +25,3 @@ export type ITechnicianFilterOptions = {
   district?: string;
   minRating?: string | number;
 };
-
