@@ -1,3 +1,4 @@
+// src/types/enums.ts
 export enum Role {
   CUSTOMER = "CUSTOMER",
   TECHNICIAN = "TECHNICIAN",
@@ -47,3 +48,10 @@ export enum NotificationType {
   SYSTEM = "SYSTEM",
   REVIEW = "REVIEW",
 }
+
+export type IPaginationOptions = {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+};

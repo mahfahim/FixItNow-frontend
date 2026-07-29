@@ -1,12 +1,6 @@
+// src/types/admin.types.ts
+import { Role, UserStatus } from './enums';
 
-import { Role, UserStatus, BookingStatus, PaymentStatus } from './enums';
-
-export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-};
 
 export type IUserFilterOptions = {
   searchTerm?: string;
@@ -14,21 +8,6 @@ export type IUserFilterOptions = {
   status?: UserStatus;
 };
 
-export type IBookingFilterOptions = {
-  searchTerm?: string;
-  status?: BookingStatus;
-  paymentStatus?: PaymentStatus;
-};
-
-export type ICategoryFilterOptions = {
-  searchTerm?: string;
-  isActive?: boolean;
-};
-
-export type IReviewFilterOptions = {
-  searchTerm?: string;
-  rating?: number;
-};
 
 export type IUpdateUserStatusPayload = {
   status: UserStatus;

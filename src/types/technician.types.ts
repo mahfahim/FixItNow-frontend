@@ -1,5 +1,5 @@
-// src/modules/technician/technician.interface.ts
-import { Weekday, BookingStatus } from './enums';
+// src/types/technician.types.ts
+import { Weekday } from './enums';
 
 export type IUpdateTechnicianProfile = {
   bio?: string;
@@ -26,15 +26,3 @@ export type ITechnicianFilterOptions = {
   minRating?: string | number;
 };
 
-export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-};
-
-export type IUpdateBookingStatusPayload = {
-  status: BookingStatus;
-  note?: string;
-  cancellationReason?: string;
-};

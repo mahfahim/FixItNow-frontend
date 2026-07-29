@@ -1,3 +1,4 @@
+// src/types/service.types.ts
 export type ICreateServicePayload = {
   categoryId: string;
   technicianId?: string;

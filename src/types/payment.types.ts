@@ -1,3 +1,4 @@
+// src/types/payment.types.ts
 import { PaymentProvider, PaymentStatus } from "./enums";
 
 export type ICreatePaymentPayload = {
@@ -16,12 +17,6 @@ export type IRefundPaymentPayload = {
   amount?: number;
 };
 
-export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-};
 
 export type IPaymentFilterRequest = {
   searchTerm?: string;

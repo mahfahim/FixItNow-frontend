@@ -1,4 +1,4 @@
-
+// src/types/category.types.ts
 export type ICategoryFilterRequest = {
   search?: string;
   isActive?: boolean;
@@ -13,9 +13,3 @@ export type ICreateCategory = {
 
 export type IUpdateCategory = Partial<ICreateCategory>;
 
-export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-};

@@ -1,4 +1,4 @@
-
+// src/types/review.types.ts
 export type ICreateReviewPayload = {
   bookingId: string;
   rating: number; // Integer: 1 to 5
@@ -21,9 +21,3 @@ export type IReviewFilterOptions = {
   sortOrder?: 'asc' | 'desc';
 };
 
-export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-};

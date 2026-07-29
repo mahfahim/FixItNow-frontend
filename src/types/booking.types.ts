@@ -1,3 +1,4 @@
+// src/types/booking.types.ts
 import { BookingStatus, PaymentStatus } from './enums';
 
 export type ICreateBookingPayload = {
@@ -23,9 +24,3 @@ export type IBookingFilterOptions = {
   endDate?: string;
 };
 
-export type IPaginationOptions = {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-};
