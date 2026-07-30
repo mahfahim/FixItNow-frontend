@@ -1,70 +1,57 @@
-import Image from 'next/image';
-import Link from 'next/link';
+"use client";
 
-// Updated interface to match your backend exactly
-interface Category {
-    id: string;
-    name: string;
-    slug: string;
-    icon: string;
-    description: string;
-    isActive: boolean;
-}
+import React from "react";
+import { IService } from "@/types";
+import { ServiceCard } from "./service-card";
+import { Wrench } from "lucide-react";
 
 interface ServiceGridProps {
-    categories: Category[];
+  services: IService[];
+  isLoading?: boolean;
+  onBookService?: (service: IService) => void;
 }
 
-export default function ServiceGrid({ categories }: ServiceGridProps) {
-    // Filter for only active categories if desired, or handle empty state
-    const activeCategories = categories.filter(c => c.isActive);
-
-    if (!activeCategories || activeCategories.length === 0) {
-        return (
-            <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                No service categories available at the moment.
-            </div>
-        );
-    }
-
+export function ServiceGrid({
+  services,
+  isLoading = false,
+  onBookService,
+}: ServiceGridProps) {
+  if (isLoading) {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {activeCategories.map((category) => (
-                <Link
-                    key={category.id}
-                    href={`/services?category=${category.slug}`}
-                    className="group block bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                >
-                    {/* Image Container */}
-                    <div className="relative w-full h-48 bg-slate-100 overflow-hidden">
-                        <Image
-                            src={category.icon || '/images/placeholder-service.jpg'}
-                            alt={`${category.name} service`}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                            className="object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
-                        />
-                    </div>
-
-                    {/* Text Content */}
-                    <div className="p-5">
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                            {category.name}
-                        </h3>
-
-                        {category.description && (
-                            <p className="text-sm text-slate-500 line-clamp-2">
-                                {category.description}
-                            </p>
-                        )}
-
-                        <div className="mt-4 flex items-center text-sm font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            Browse services
-                            <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
-                        </div>
-                    </div>
-                </Link>
-            ))}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <div
+            key={idx}
+            className="h-85 rounded-2xl bg-slate-100 animate-pulse border border-slate-200/60"
+          />
+        ))}
+      </div>
     );
+  }
+
+  if (services.length === 0) {
+    return (
+      <div className="text-center py-16 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-2xl my-6">
+        <div className="inline-flex p-3 bg-slate-200/60 rounded-full text-slate-500 mb-3">
+          <Wrench className="h-6 w-6" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-900">No Services Found</h3>
+        <p className="text-slate-500 text-sm max-w-sm mx-auto mt-1">
+          Try adjusting your search query or clear existing filters to explore more options.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {services.map((service) => (
+        <ServiceCard
+          key={service.id}
+          service={service}
+          onBookClick={onBookService}
+        />
+      ))}
+    </div>
+  );
 }
