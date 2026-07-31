@@ -23,9 +23,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-/**
- * Helper utility to safely decode user role from JWT access token
- */
+
+
+
 function getRoleFromToken(token: string): Role | null {
   try {
     const base64Url = token.split(".")[1];
@@ -68,7 +68,7 @@ export function LoginForm() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Client-side Zod validation
+    
     const validation = loginValidationSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors: Partial<Record<keyof ILoginUser, string>> = {};
@@ -95,7 +95,7 @@ export function LoginForm() {
 
         toast.success("Welcome back!");
 
-        // Redirect based on user role
+        
         switch (userRole) {
           case Role.ADMIN:
             router.push("/admin/dashboard");

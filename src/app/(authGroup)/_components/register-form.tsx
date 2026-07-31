@@ -63,7 +63,7 @@ export function RegisterForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Client-side Zod validation
+    
     const validation = registerValidationSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors: Partial<Record<keyof IRegisterUser, string>> = {};
@@ -179,7 +179,7 @@ export function RegisterForm() {
             )}
           </div>
 
-          {/* Role Field (Shadcn Select) */}
+          {/* Role Field  */}
           <div className="space-y-1.5">
             <Label htmlFor="role" className="text-sm font-semibold text-slate-700">
               Register As

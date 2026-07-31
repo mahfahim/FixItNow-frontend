@@ -4,15 +4,12 @@
 import { cookies } from "next/headers";
 import { IRegisterUser, ILoginUser } from "@/types";
 
-// Ensure BASE_URL is sanitized without any trailing slashes
+
 const BASE_URL = (
   process.env.BACKEND_API_URL || "https://fixitnow-backend-tau.vercel.app"
 ).replace(/\/$/, "");
 
-/**
- * Register a new user (Customer or Technician)
- * Endpoint: POST /api/auth/register
- */
+
 export async function register(payload: IRegisterUser) {
   try {
     const res = await fetch(`${BASE_URL}/api/auth/register`, {
@@ -36,10 +33,10 @@ export async function register(payload: IRegisterUser) {
   }
 }
 
-/**
- * Authenticate a user and store tokens securely in HTTP-only cookies
- * Endpoint: POST /api/auth/login
- */
+
+
+
+
 export async function login(payload: ILoginUser) {
   try {
     const res = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -91,9 +88,9 @@ export async function login(payload: ILoginUser) {
   }
 }
 
-/**
- * Clear authentication tokens from HTTP-only cookies
- */
+
+
+
 export async function logout() {
   try {
     const cookieStore = await cookies();
