@@ -1,15 +1,26 @@
-"use client"
+// src/app/(authGroup)/_components/register-form.tsx
+"use client";
 
-import type React from "react"
+import React, { useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, Mail, Lock, User, Shield } from "lucide-react";
+import { toast } from "sonner";
 
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
-
-import { registerUser } from "../_actions/auth.action"
-import { Button } from "@/components/ui/button"
+import { register } from "@/app/(authGroup)/_actions/auth.actions";
+import { registerValidationSchema } from "@/app/(authGroup)/_schema/auth.schema";
+import { IRegisterUser } from "@/types/auth.types";
+import { Role } from "@/types/enums";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -17,115 +28,215 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
 
 export function RegisterForm() {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState("user")
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const [formData, setFormData] = useState<IRegisterUser>({
+    name: "",
+    email: "",
+    password: "",
+    role: Role.CUSTOMER,
+  });
+
+  const [errors, setErrors] = useState<Partial<Record<keyof IRegisterUser, string>>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof IRegisterUser]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleRoleChange = (value: string | null) => {
+    if (value) {
+      setFormData((prev) => ({ ...prev, role: value as Role }));
+      if (errors.role) {
+        setErrors((prev) => ({ ...prev, role: undefined }));
+      }
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Client-side Zod validation
+    const validation = registerValidationSchema.safeParse(formData);
+    if (!validation.success) {
+      const fieldErrors: Partial<Record<keyof IRegisterUser, string>> = {};
+      validation.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0] as keyof IRegisterUser] = issue.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
 
     startTransition(async () => {
-      const result = await registerUser({ name, email, password, role })
+      try {
+        const response = await register(formData);
 
-      if (!result.success) {
-        toast.error(result.error ?? "Registration failed")
-        return
+        if (!response?.success) {
+          toast.error(response?.message || "Registration failed. Please try again.");
+          return;
+        }
+
+        toast.success("Account created successfully! Please sign in.");
+        router.push("/login");
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Registration failed. Please try again.";
+        toast.error(errorMessage);
       }
-
-      toast.success("Account created successfully")
-      router.push("/login")
-    })
-  }
+    });
+  };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-balance">Create an account</CardTitle>
-        <CardDescription>Fill in your details to get started</CardDescription>
+    <Card className="w-full max-w-md bg-white border border-slate-200/80 shadow-xl rounded-2xl">
+      <CardHeader className="space-y-1.5 text-center pb-6">
+        <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">
+          Create an Account
+        </CardTitle>
+        <CardDescription className="text-slate-500 text-sm">
+          Join FixItNow to book or offer professional services
+        </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Jane Doe"
-              autoComplete="name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name Field */}
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-sm font-semibold text-slate-700">
+              Full Name
+            </Label>
+            <div className="relative">
+              <User className="absolute left-3.5 top-3 h-5 w-5 text-slate-400" />
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={handleChange}
+                disabled={isPending}
+                className="pl-11 h-11 bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all rounded-lg"
+              />
+            </div>
+            {errors.name && (
+              <p className="text-xs text-red-500 font-medium">{errors.name}</p>
+            )}
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+
+          {/* Email Field */}
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-sm font-semibold text-slate-700">
+              Email Address
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-3 h-5 w-5 text-slate-400" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="name@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isPending}
+                className="pl-11 h-11 bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all rounded-lg"
+              />
+            </div>
+            {errors.email && (
+              <p className="text-xs text-red-500 font-medium">{errors.email}</p>
+            )}
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+
+          {/* Password Field */}
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-sm font-semibold text-slate-700">
+              Password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-3 h-5 w-5 text-slate-400" />
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isPending}
+                className="pl-11 h-11 bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all rounded-lg"
+              />
+            </div>
+            {errors.password && (
+              <p className="text-xs text-red-500 font-medium">{errors.password}</p>
+            )}
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="role">Role</Label>
-            <select
-              id="role"
-              name="role"
-              required
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
+
+          {/* Role Field (Shadcn Select) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="role" className="text-sm font-semibold text-slate-700">
+              Register As
+            </Label>
+            <div className="relative">
+              <Shield className="absolute left-3.5 top-3 h-5 w-5 text-slate-400 z-10 pointer-events-none" />
+              <Select
+                value={formData.role}
+                onValueChange={handleRoleChange}
+                disabled={isPending}
+              >
+                <SelectTrigger className="w-full pl-11 h-11 bg-slate-50 border-slate-300 text-slate-900 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-lg">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={Role.CUSTOMER}>
+                    Customer (I need services)
+                  </SelectItem>
+                  <SelectItem value={Role.TECHNICIAN}>
+                    Technician (I offer services)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {errors.role && (
+              <p className="text-xs text-red-500 font-medium">{errors.role}</p>
+            )}
           </div>
-        </CardContent>
-        <CardFooter className="mt-6 flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isPending}>
+
+          <Button
+            type="submit"
+            className="w-full h-11 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md shadow-indigo-100 transition-all duration-200"
+            disabled={isPending}
+          >
             {isPending ? (
               <>
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Creating account...
               </>
             ) : (
-              "Create account"
+              "Create Account"
             )}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            {"Already have an account? "}
-            <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </form>
+        </form>
+      </CardContent>
+
+      <CardFooter className="flex justify-center border-t border-slate-100 p-6">
+        <p className="text-sm text-slate-600">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors"
+          >
+            Sign In
+          </Link>
+        </p>
+      </CardFooter>
     </Card>
-  )
+  );
 }

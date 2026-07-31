@@ -1,14 +1,17 @@
-"use client"
+// src/app/(authGroup)/_components/login-form.tsx
+"use client";
 
-import type React from "react"
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Loader2, Mail, Lock } from "lucide-react"
-import { toast } from "sonner"
+import React, { useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, Mail, Lock } from "lucide-react";
+import { toast } from "sonner";
 
-import { loginUser } from "../_actions/auth.action"
-import { Button } from "@/components/ui/button"
+import { login } from "@/app/(authGroup)/_actions/auth.actions";
+import { loginValidationSchema } from "@/app/(authGroup)/_schema/auth.schema";
+import { ILoginUser } from "@/types/auth.types";
+import { Role } from "@/types/enums";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,106 +19,196 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+/**
+ * Helper utility to safely decode user role from JWT access token
+ */
+function getRoleFromToken(token: string): Role | null {
+  try {
+    const base64Url = token.split(".")[1];
+    if (!base64Url) return null;
+
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+
+    const parsed = JSON.parse(jsonPayload);
+    return parsed?.role || null;
+  } catch {
+    return null;
+  }
+}
 
 export function LoginForm() {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const [formData, setFormData] = useState<ILoginUser>({
+    email: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState<Partial<Record<keyof ILoginUser, string>>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof ILoginUser]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Client-side Zod validation
+    const validation = loginValidationSchema.safeParse(formData);
+    if (!validation.success) {
+      const fieldErrors: Partial<Record<keyof ILoginUser, string>> = {};
+      validation.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0] as keyof ILoginUser] = issue.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
 
     startTransition(async () => {
-      const result = await loginUser({ email, password })
+      try {
+        const response = await login(formData);
 
-      if (!result?.success) {
-        toast.error(result?.error ?? "Invalid email or password.")
-        return
+        if (!response?.success) {
+          toast.error(response?.message || "Invalid email or password.");
+          return;
+        }
+
+        const accessToken = response?.data?.accessToken;
+        const userRole = accessToken ? getRoleFromToken(accessToken) : null;
+
+        toast.success("Welcome back!");
+
+        // Redirect based on user role
+        switch (userRole) {
+          case Role.ADMIN:
+            router.push("/admin/dashboard");
+            break;
+          case Role.TECHNICIAN:
+            router.push("/technician/dashboard");
+            break;
+          case Role.CUSTOMER:
+            router.push("/customer/dashboard");
+            break;
+          default:
+            router.push("/");
+            break;
+        }
+
+        router.refresh();
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        toast.error(errorMessage);
       }
-
-      toast.success("Welcome back!")
-      router.push("/")
-    })
-  }
+    });
+  };
 
   return (
-    <Card className="w-full max-w-md border-muted/60 shadow-lg md:shadow-xl">
-      <CardHeader className="space-y-2 text-center pb-6">
-        <CardTitle className="text-3xl font-bold tracking-tight">
+    <Card className="w-full max-w-md bg-white border border-slate-200/80 shadow-xl rounded-2xl">
+      <CardHeader className="space-y-1.5 text-center pb-6">
+        <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">
           Welcome back
         </CardTitle>
-        <CardDescription className="text-base">
-          Enter your credentials to access your account
+        <CardDescription className="text-slate-500 text-sm">
+          Enter your credentials to access your FixItNow account
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+          {/* Email Field */}
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-sm font-semibold text-slate-700">
+              Email Address
+            </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground/70" />
+              <Mail className="absolute left-3.5 top-3 h-5 w-5 text-slate-400" />
               <Input
                 id="email"
                 name="email"
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-11"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isPending}
+                className="pl-11 h-11 bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all rounded-lg"
               />
             </div>
+            {errors.email && (
+              <p className="text-xs text-red-500 font-medium">{errors.email}</p>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          {/* Password Field */}
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-sm font-semibold text-slate-700">
+              Password
+            </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground/70" />
+              <Lock className="absolute left-3.5 top-3 h-5 w-5 text-slate-400" />
               <Input
                 id="password"
                 name="password"
                 type="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 h-11"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isPending}
+                className="pl-11 h-11 bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all rounded-lg"
               />
             </div>
+            {errors.password && (
+              <p className="text-xs text-red-500 font-medium">{errors.password}</p>
+            )}
           </div>
 
-          <Button type="submit" className="w-full h-11 mt-2 text-base font-semibold" disabled={isPending}>
+          <Button
+            type="submit"
+            className="w-full h-11 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md shadow-indigo-100 transition-all duration-200"
+            disabled={isPending}
+          >
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Signing in...
               </>
             ) : (
-              "Sign in to account"
+              "Sign In"
             )}
           </Button>
         </form>
       </CardContent>
 
-      <CardFooter className="flex justify-center border-t p-6">
-        <p className="text-sm text-muted-foreground">
+      <CardFooter className="flex justify-center border-t border-slate-100 p-6">
+        <p className="text-sm text-slate-600">
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
-            className="font-semibold text-primary hover:text-primary/80 hover:underline hover:underline-offset-4 transition-colors"
+            className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors"
           >
             Sign up for free
           </Link>
         </p>
       </CardFooter>
     </Card>
-  )
+  );
 }
