@@ -1,0 +1,130 @@
+// src/app/(dashboardGroup)/technician/services/page.tsx
+import Link from "next/link";
+import { getMyProfile } from "@/actions/getMe.action";
+import { getAllServices } from "@/actions/services.actions";
+import { IService } from "@/types";
+import { ServiceDeleteButton } from "../_components/service-delete-button";
+import { Plus, Edit, Clock, MapPin, Wrench, Layers } from "lucide-react";
+
+export default async function TechnicianServicesPage() {
+    const profileRes = await getMyProfile();
+    const user = profileRes?.data || profileRes?.result;
+    const technicianId = user?.technicianProfile?.id || user?.id;
+
+    const servicesRes = await getAllServices({ technicianId });
+    const services: IService[] = servicesRes?.data || servicesRes?.result || [];
+
+    return (
+        <div className="max-w-6xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">My Services</h1>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        Manage your offered service packages, pricing, and availability.
+                    </p>
+                </div>
+                <Link
+                    href="/technician/services/create"
+                    className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors shadow-xs self-start sm:self-auto"
+                >
+                    <Plus className="w-4 h-4" />
+                    Add New Service
+                </Link>
+            </div>
+
+            {/* Services Grid */}
+            {services.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center space-y-4">
+                    <Wrench className="w-12 h-12 text-slate-300 mx-auto" />
+                    <div className="space-y-1">
+                        <h3 className="text-base font-semibold text-slate-800">No Services Added Yet</h3>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                            Create your first service offering to start getting booking requests from customers.
+                        </p>
+                    </div>
+                    <Link
+                        href="/technician/services/create"
+                        className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Add First Service
+                    </Link>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {services.map((service) => (
+                        <div
+                            key={service.id}
+                            className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between gap-4"
+                        >
+                            <div className="space-y-3">
+                                {/* Status & Category */}
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                                        <Layers className="w-3 h-3 text-indigo-600" />
+                                        {service.category?.name || "General"}
+                                    </span>
+                                    <span
+                                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${service.isAvailable
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                            : "bg-amber-50 text-amber-700 border-amber-200"
+                                            }`}
+                                    >
+                                        {service.isAvailable ? "Available" : "Paused"}
+                                    </span>
+                                </div>
+
+                                {/* Title & Description */}
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-900 line-clamp-1">
+                                        {service.title}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                                        {service.description}
+                                    </p>
+                                </div>
+
+                                {/* Price & Duration */}
+                                <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+                                    <div>
+                                        <span className="text-[10px] text-slate-400 uppercase font-semibold">Price</span>
+                                        <p className="text-lg font-bold text-indigo-600">৳{service.price}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[10px] text-slate-400 uppercase font-semibold">Duration</span>
+                                        <div className="flex items-center gap-1 text-xs text-slate-700 font-medium">
+                                            <Clock className="w-3 h-3 text-slate-400" />
+                                            {service.duration} mins
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Service Area */}
+                                {service.serviceArea && service.serviceArea.length > 0 && (
+                                    <div className="flex items-start gap-1 text-[11px] text-slate-500">
+                                        <MapPin className="w-3 h-3 text-indigo-600 shrink-0 mt-0.5" />
+                                        <span className="line-clamp-1">{service.serviceArea.join(", ")}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <Link
+                                    href={`/technician/services/edit?id=${service.id}`}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                >
+                                    <Edit className="w-3.5 h-3.5 text-slate-500" />
+                                    Edit
+                                </Link>
+
+                                <ServiceDeleteButton serviceId={service.id} serviceTitle={service.title} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
