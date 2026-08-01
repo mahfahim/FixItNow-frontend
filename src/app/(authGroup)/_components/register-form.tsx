@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, User, Shield } from "lucide-react";
 import { toast } from "sonner";
 
-import { register } from "@/app/(authGroup)/_actions/auth.actions";
+import { register } from "@/actions/auth.actions";
 import { registerValidationSchema } from "@/app/(authGroup)/_schema/auth.schema";
 import { IRegisterUser } from "@/types/auth.types";
 import { Role } from "@/types/enums";
@@ -63,7 +63,7 @@ export function RegisterForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    
+
     const validation = registerValidationSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors: Partial<Record<keyof IRegisterUser, string>> = {};

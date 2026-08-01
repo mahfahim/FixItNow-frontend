@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 
-import { login } from "@/app/(authGroup)/_actions/auth.actions";
+import { login } from "@/actions/auth.actions";
 import { loginValidationSchema } from "@/app/(authGroup)/_schema/auth.schema";
 import { ILoginUser } from "@/types/auth.types";
 import { Role } from "@/types/enums";
