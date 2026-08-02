@@ -1,6 +1,7 @@
 // src/app/layout.tsx 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "@/app/globals.css";
 // import { AuthProvider } from "@/providers/auth-provider";
 // import { ToastProvider } from "@/providers/toast-provider";
@@ -25,7 +26,15 @@ export default function RootLayout({
       >
         {/* <AuthProvider> */}
         {/* <ToastProvider> */}
-        {children}
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          }
+        >
+          {children}
+        </Suspense>
         {/* </ToastProvider> */}
         {/* </AuthProvider> */}
       </body>
