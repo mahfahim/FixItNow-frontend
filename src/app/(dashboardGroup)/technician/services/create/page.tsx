@@ -5,6 +5,8 @@ import { ServiceForm } from "../../_components/service-form";
 import { ArrowLeft } from "lucide-react";
 import { ICategory } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 const BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
 async function getCategories(): Promise<ICategory[]> {
