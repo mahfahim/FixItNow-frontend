@@ -1,4 +1,5 @@
 // src/types/booking.types.ts
+// src/types/booking.types.ts
 import { BookingStatus, PaymentStatus } from "./enums";
 
 export type ICreateBookingPayload = {
@@ -25,11 +26,4 @@ export type IBookingFilterOptions = {
   endDate?: string;
   customerId?: string;
   technicianId?: string;
-};
-
-
-export type IConfirmPaymentPayload = {
-  sessionId?: string;
-  tranId?: string;
-  bookingId?: string; 
 };

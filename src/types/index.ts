@@ -9,6 +9,7 @@ export * from "./booking.types";
 export * from "./review.types";
 export * from "./technician.types";
 export * from "./admin.types";
+export * from "./payment.types";
 
 import {
   Role,
