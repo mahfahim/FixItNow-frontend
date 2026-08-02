@@ -33,8 +33,8 @@ export async function getMyProfile() {
     const res = await fetch(`${BASE_URL}/api/auth/me`, {
       method: "GET",
       headers,
+      cache: "no-store",
       next: {
-        revalidate: 60,
         tags: ["user-profile"],
       },
     });
@@ -57,6 +57,7 @@ export async function getMyProfile() {
  */
 export async function updateMyProfile(payload: IUpdateUserProfile) {
   try {
+
     const headers = await getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/auth/me`, {
       method: "PATCH",
