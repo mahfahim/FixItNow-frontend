@@ -6,7 +6,6 @@ export * from "./auth.types";
 export * from "./category.types";
 export * from "./service.types";
 export * from "./booking.types";
-export * from "./payment.types";
 export * from "./review.types";
 export * from "./technician.types";
 export * from "./admin.types";
@@ -28,6 +27,7 @@ export interface IUser {
   name: string;
   email: string;
   role: Role;
+  profileImage?: string | null;
   status: UserStatus;
   isDeleted: boolean;
   lastLoginAt?: string | Date | null;

@@ -58,20 +58,23 @@ export function DashboardSidebar({
 
         if (userRole === "ADMIN") {
             return [
-                { label: "Admin Panel", href: basePath, icon: Shield },
+                { label: "Admin Home", href: basePath, icon: Shield },
                 { label: "Manage Users", href: `${basePath}/users`, icon: Users },
-                { label: "Services", href: `${basePath}/services`, icon: Wrench },
                 { label: "All Bookings", href: `${basePath}/bookings`, icon: Calendar },
-                ...common.filter((item) => item.label !== "Overview"),
+                { label: "Category Creation", href: `${basePath}/categories`, icon: Calendar },
+
             ];
         }
 
         if (userRole === "TECHNICIAN") {
             return [
-                { label: "Technician Hub", href: basePath, icon: Wrench },
-                { label: "Service Jobs", href: `${basePath}/requests`, icon: Calendar },
+                { label: "Technician Home", href: basePath, icon: Wrench },
+                { label: "Profile", href: `${basePath}/profile`, icon: Calendar },
+                { label: "Bookings", href: `${basePath}/bookings`, icon: Calendar },
+                { label: "My Services", href: `${basePath}/services`, icon: Star },
+                { label: "Availability", href: `${basePath}/availability`, icon: Star },
                 { label: "Reviews", href: `${basePath}/reviews`, icon: Star },
-                ...common.filter((item) => item.label !== "Overview"),
+
             ];
         }
 
@@ -144,8 +147,8 @@ export function DashboardSidebar({
                                     href={item.href}
                                     onClick={onClose}
                                     className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                                            ? "bg-blue-600 text-white font-semibold shadow-xs"
-                                            : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                        ? "bg-blue-600 text-white font-semibold shadow-xs"
+                                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
                                         }`}
                                 >
                                     <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-slate-400"}`} />

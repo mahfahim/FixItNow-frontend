@@ -3,7 +3,7 @@ import { BookingStatus, PaymentStatus } from "./enums";
 
 export type ICreateBookingPayload = {
   serviceId: string;
-  technicianId: string;
+  technicianId?: string;
   scheduledDate: string; // ISO format e.g. "2026-08-01"
   scheduledTime: string; // e.g. "10:00"
   address: string;
@@ -25,4 +25,11 @@ export type IBookingFilterOptions = {
   endDate?: string;
   customerId?: string;
   technicianId?: string;
+};
+
+
+export type IConfirmPaymentPayload = {
+  sessionId?: string;
+  tranId?: string;
+  bookingId?: string; 
 };

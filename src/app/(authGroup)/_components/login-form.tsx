@@ -68,7 +68,7 @@ export function LoginForm() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    
+
     const validation = loginValidationSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors: Partial<Record<keyof ILoginUser, string>> = {};
@@ -95,16 +95,16 @@ export function LoginForm() {
 
         toast.success("Welcome back!");
 
-        
+
         switch (userRole) {
           case Role.ADMIN:
-            router.push("/admin/dashboard");
+            router.push("/admin/");
             break;
           case Role.TECHNICIAN:
-            router.push("/technician/dashboard");
+            router.push("/technician/");
             break;
           case Role.CUSTOMER:
-            router.push("/customer/dashboard");
+            router.push("/customer/");
             break;
           default:
             router.push("/");
