@@ -1,4 +1,4 @@
-// src/app/(dashboardGroup)/customer/dashboard/profile/edit/page.tsx
+// src/app/(dashboardGroup)/customer/profile/edit/page.tsx
 
 "use client";
 
@@ -12,7 +12,7 @@ import {
     UpdateUserProfileInput,
 } from "@/act-schema/getMe.shema";
 import { getMyProfile, updateMyProfile } from "@/actions/getMe.action";
-import { GetMeCustomer } from "../../../_components/getMe-customer";
+import { GetMeCustomer } from "../../_components/getMe-customer";
 import { IUser } from "@/types";
 import { ArrowLeft, Save, Loader2, User, Mail, Lock } from "lucide-react";
 
@@ -64,7 +64,7 @@ export default function EditCustomerProfilePage() {
                 setSuccessMsg("Profile updated successfully!");
                 router.refresh();
                 setTimeout(() => {
-                    router.push("/customer/dashboard/profile");
+                    router.push("/customer/profile");
                 }, 1200);
             } else {
                 setServerError(res?.message || "Failed to update profile.");
@@ -90,7 +90,7 @@ export default function EditCustomerProfilePage() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Link
-                        href="/customer/dashboard/profile"
+                        href="/customer/profile"
                         className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4" />

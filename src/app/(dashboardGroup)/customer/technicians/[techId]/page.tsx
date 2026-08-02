@@ -1,5 +1,3 @@
-// src/app/(dashboardGroup)/customer/dashboard/technicians/[technician-id]/page.tsx
-
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -18,13 +16,17 @@ import {
 
 interface SingleTechnicianPageProps {
     params: Promise<{
-        "technician-id": string;
+        techId: string; // 👈 [techId] ফোল্ডারের নামের সাথে মিল রাখা হয়েছে
     }>;
 }
 
 export default async function SingleTechnicianPage({ params }: SingleTechnicianPageProps) {
     const resolvedParams = await params;
-    const techId = resolvedParams["technician-id"];
+    const techId = resolvedParams.techId; // 👈 সঠিক Dynamic Param ধরা হলো
+
+    if (!techId) {
+        notFound();
+    }
 
     const res = await getTechnicianById(techId);
 
@@ -35,8 +37,14 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
     const tech = res.data;
     const name = tech.name || tech.user?.name || "Technician Profile";
     const email = tech.user?.email || tech.email;
+
+    // Image Resolution
     const image =
-        tech.profileImage || tech.user?.profileImage || "/placeholder-avatar.jpg";
+        tech.profileImage ||
+        tech.user?.profileImage ||
+        tech.avatar ||
+        tech.user?.avatar ||
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
     const hourlyRate = tech.hourlyRate || tech.price || 0;
 
@@ -49,10 +57,10 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
                 : ["General Repairs"];
 
     return (
-        <div className="p-6 max-w-5xl mx-auto space-y-8">
-            {/* Back Link */}
+        <div className="p-6 max-w-5xl mx-auto space-y-8 text-slate-900">
+            {/* Back Link - Route Fixed */}
             <Link
-                href="/customer/dashboard/technicians"
+                href="/customer/technicians"
                 className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
@@ -71,6 +79,7 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
                                 fill
                                 className="object-cover"
                                 priority
+                                unoptimized={image.startsWith("http")}
                             />
                         </div>
 
@@ -90,12 +99,12 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-700">
                                 <span className="flex items-center gap-1 font-semibold text-amber-500">
                                     <Star className="w-4 h-4 fill-amber-500" />
-                                    {tech.rating ? tech.rating.toFixed(1) : "5.0"} Rating
+                                    {tech.rating || tech.averageRating ? Number(tech.rating || tech.averageRating).toFixed(1) : "5.0"} Rating
                                 </span>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
                                     <Briefcase className="w-4 h-4 text-slate-500" />
-                                    {tech.experienceYears || 1}+ Years Experience
+                                    {tech.experienceYears || tech.yearsOfExperience || 1}+ Years Experience
                                 </span>
                             </div>
                         </div>
@@ -106,7 +115,7 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
                         <h3 className="text-lg font-bold text-slate-900">About Technician</h3>
                         <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
                             {tech.bio ||
-                                `${name} is a certified repair technician with extensive experience in providing top-quality repairs and Maintenance services.`}
+                                `${name} is a certified repair technician with extensive experience in providing top-quality repairs and maintenance services.`}
                         </p>
                     </div>
 
@@ -138,7 +147,7 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
                                 Hourly Service Rate
                             </span>
                             <div className="text-3xl font-extrabold text-blue-400">
-                                ৳{hourlyRate}
+                                ${hourlyRate}
                                 <span className="text-xs font-normal text-slate-400">/hr</span>
                             </div>
                         </div>
@@ -158,7 +167,7 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
 
                         <div className="space-y-3 pt-2">
                             <Link
-                                href={`/customer/dashboard/bookings/new?technicianId=${techId}`}
+                                href={`/customer/bookings/new?technicianId=${techId}`}
                                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/25"
                             >
                                 <Calendar className="w-5 h-5" />

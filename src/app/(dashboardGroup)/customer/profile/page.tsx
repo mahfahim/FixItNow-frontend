@@ -1,8 +1,7 @@
 // src/app/(dashboardGroup)/customer/dashboard/profile/page.tsx
-
 import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
-import { GetMeCustomer } from "../../_components/getMe-customer";
+import { GetMeCustomer } from "../_components/getMe-customer";
 import { Edit3, User, Mail, Shield, AlertCircle } from "lucide-react";
 
 export const metadata = {
@@ -35,8 +34,9 @@ export default async function CustomerProfilePage() {
                         Overview of your personal customer profile details
                     </p>
                 </div>
+                {/* Updated Route Path */}
                 <Link
-                    href="/customer/dashboard/profile/edit"
+                    href="/customer/profile/edit"
                     className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm"
                 >
                     <Edit3 className="h-3.5 w-3.5" />

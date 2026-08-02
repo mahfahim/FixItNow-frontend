@@ -1,7 +1,7 @@
-// src/app/(dashboardGroup)/customer/dashboard/technicians/page.tsx
+// src/app/(dashboardGroup)/customer/technicians/page.tsx
 
 import { getAllTechnicians } from "@/actions/technician.actions";
-import { TechnicianCustomerCard } from "../../_components/technician-view-customer";
+import { TechnicianCustomerCard } from "../_components/technician-view-customer";
 import { Users, AlertCircle } from "lucide-react";
 import { ITechnician } from "@/types";
 
@@ -40,7 +40,7 @@ export default async function TechniciansPage({ searchParams }: PageProps) {
             {technicians.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {technicians.map((technician, index) => {
-                        // Safe key extraction without TypeScript errors
+
                         const techKey =
                             technician.id ||
                             (technician as unknown as { _id?: string })._id ||
