@@ -67,7 +67,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
 
                     <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-right shrink-0">
                         <span className="text-xs text-indigo-600 font-medium">Service Fee</span>
-                        <p className="text-2xl font-bold text-indigo-700">৳{booking.price}</p>
+                        <p className="text-2xl font-bold text-indigo-700">${booking.price}</p>
                     </div>
                 </div>
 

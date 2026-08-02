@@ -11,6 +11,8 @@ import {
   IUpdateBookingStatusPayload 
 } from "@/types";
 
+
+
 const API_BASE_URL = process.env.BACKEND_API_URL as string;
 
 /**
@@ -48,7 +50,7 @@ export async function getTechnicianBookings(
     if (pagination.sortBy) queryParams.append("sortBy", pagination.sortBy);
     if (pagination.sortOrder) queryParams.append("sortOrder", pagination.sortOrder);
 
-    const res = await fetch(`${API_BASE_URL}/bookings?${queryParams.toString()}`, {
+    const res = await fetch(`${API_BASE_URL}/api/bookings?${queryParams.toString()}`, {
       method: "GET",
       headers,
       cache: "no-store",
@@ -68,7 +70,7 @@ export async function getTechnicianBookings(
 export async function getTechnicianBookingById(bookingId: string) {
   try {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}`, {
       method: "GET",
       headers,
       cache: "no-store",
@@ -91,7 +93,7 @@ export async function updateTechnicianBookingStatus(
 ) {
   try {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/status`, {
+    const res = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}/status`, {
       method: "PATCH",
       headers,
       body: JSON.stringify(payload),

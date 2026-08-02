@@ -1,17 +1,16 @@
 // src/app/(dashboardGroup)/technician/availability/page.tsx
 
-
 import Link from "next/link";
-import { getMyProfile } from "@/actions/getMe.action";
+import { getAvailability } from "../_actions/technician.action";
 import { Weekday, IAvailabilitySlot } from "@/types";
 import { Edit, Clock, CalendarX2 } from "lucide-react";
 
-export default async function AvailabilityViewPage() {
-    const profileRes = await getMyProfile();
-    const user = profileRes?.data || profileRes?.result;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-    // Ensure TypeScript knows it's an array of IAvailabilitySlot
-    const availabilitySlots: IAvailabilitySlot[] = user?.technicianProfile?.availabilitySlots || [];
+export default async function AvailabilityViewPage() {
+    const res = await getAvailability();
+    const availabilitySlots: IAvailabilitySlot[] = res?.data || res?.result || [];
 
     const WEEKDAYS = Object.values(Weekday);
 
@@ -37,7 +36,6 @@ export default async function AvailabilityViewPage() {
             {/* Schedule List */}
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
                 {WEEKDAYS.map((day, idx) => {
-                    // Replaced 'any' with 'IAvailabilitySlot'
                     const slot = availabilitySlots.find((s: IAvailabilitySlot) => s.weekday === day);
                     const isAvailable = slot?.isAvailable;
 

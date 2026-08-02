@@ -1,14 +1,17 @@
-// src/app/(dashboardGroup)/technician/profile/page.tsx
-
 import Link from "next/link";
+import Image from "next/image";
 import { getMyProfile } from "@/actions/getMe.action";
 import { Edit, Star, Briefcase, MapPin, Phone, Mail, CheckCircle } from "lucide-react";
 import { IUser, ITechnician } from "@/types";
+
+export const dynamic = "force-dynamic";
 
 export default async function TechnicianProfilePage() {
     const profileRes = await getMyProfile();
     const user: IUser = profileRes?.data || profileRes?.result;
     const techProfile: ITechnician | null | undefined = user?.technicianProfile;
+
+    const displayImage = techProfile?.profileImage || user?.profileImage;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -33,27 +36,43 @@ export default async function TechnicianProfilePage() {
                 {/* Left Column: Basic Info Card */}
                 <div className="md:col-span-1 space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col items-center text-center">
-                        <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mb-4">
-                            {user?.name?.charAt(0).toUpperCase()}
+                        {/* Profile Image / Avatar Display */}
+                        <div className="relative w-24 h-24 rounded-full overflow-hidden bg-indigo-100 text-indigo-600 border-2 border-indigo-200 flex items-center justify-center text-3xl font-bold mb-4 shrink-0">
+                            {displayImage ? (
+                                <Image
+                                    src={displayImage}
+                                    alt={user?.name || "Profile Image"}
+                                    fill
+                                    sizes="96px"
+                                    unoptimized
+                                    className="object-cover"
+                                />
+                            ) : (
+                                user?.name?.charAt(0).toUpperCase()
+                            )}
                         </div>
+
                         <h2 className="text-xl font-bold text-slate-900">{user?.name}</h2>
                         <p className="text-sm text-slate-500 mb-4">{user?.role}</p>
 
                         <div className="w-full space-y-3 mt-2 text-left">
                             <div className="flex items-center gap-3 text-sm text-slate-600">
-                                <Mail className="w-4 h-4 text-slate-400" />
-                                <span>{user?.email}</span>
+                                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+                                <span className="truncate">{user?.email}</span>
                             </div>
                             {techProfile?.phone && (
                                 <div className="flex items-center gap-3 text-sm text-slate-600">
-                                    <Phone className="w-4 h-4 text-slate-400" />
+                                    <Phone className="w-4 h-4 text-slate-400 shrink-0" />
                                     <span>{techProfile.phone}</span>
                                 </div>
                             )}
-                            {techProfile?.city && (
+                            {(techProfile?.city || techProfile?.district) && (
                                 <div className="flex items-center gap-3 text-sm text-slate-600">
-                                    <MapPin className="w-4 h-4 text-slate-400" />
-                                    <span>{techProfile.city}{techProfile.district ? `, ${techProfile.district}` : ""}</span>
+                                    <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                                    <span>
+                                        {techProfile?.city}
+                                        {techProfile?.district ? `, ${techProfile.district}` : ""}
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -94,10 +113,19 @@ export default async function TechnicianProfilePage() {
                             </p>
                         </div>
 
-                        {techProfile?.address && (
+                        {/* Detailed Address View */}
+                        {(techProfile?.address || techProfile?.city || techProfile?.district) && (
                             <div className="mt-6 pt-6 border-t border-slate-100">
-                                <h4 className="text-sm font-semibold text-slate-900 mb-2">Detailed Address</h4>
-                                <p className="text-sm text-slate-600">{techProfile.address}</p>
+                                <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-indigo-500" />
+                                    Detailed Address
+                                </h4>
+                                <p className="text-sm text-slate-600">
+                                    {techProfile?.address || "No specific address line provided."}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {[techProfile?.city, techProfile?.district].filter(Boolean).join(", ")}
+                                </p>
                             </div>
                         )}
                     </div>

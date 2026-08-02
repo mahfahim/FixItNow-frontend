@@ -4,7 +4,10 @@ import { getMyProfile } from "@/actions/getMe.action";
 import { getAllServices } from "@/actions/services.actions";
 import { IService } from "@/types";
 import { ServiceDeleteButton } from "../_components/service-delete-button";
-import { Plus, Edit, Clock, MapPin, Wrench, Layers } from "lucide-react";
+import { Plus, Edit, Clock, MapPin, Wrench, Layers, ImageIcon } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function TechnicianServicesPage() {
     const profileRes = await getMyProfile();
@@ -53,76 +56,101 @@ export default async function TechnicianServicesPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {services.map((service) => (
-                        <div
-                            key={service.id}
-                            className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between gap-4"
-                        >
-                            <div className="space-y-3">
-                                {/* Status & Category */}
-                                <div className="flex items-center justify-between">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
-                                        <Layers className="w-3 h-3 text-indigo-600" />
-                                        {service.category?.name || "General"}
-                                    </span>
-                                    <span
-                                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${service.isAvailable
-                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                            : "bg-amber-50 text-amber-700 border-amber-200"
-                                            }`}
-                                    >
-                                        {service.isAvailable ? "Available" : "Paused"}
-                                    </span>
-                                </div>
+                    {services.map((service) => {
+                        const hasImage = service.images && service.images.length > 0;
+                        const imageUrl = hasImage ? service.images[0] : null;
 
-                                {/* Title & Description */}
-                                <div>
-                                    <h3 className="text-base font-bold text-slate-900 line-clamp-1">
-                                        {service.title}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 line-clamp-2 mt-1">
-                                        {service.description}
-                                    </p>
-                                </div>
+                        return (
+                            <div
+                                key={service.id}
+                                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between gap-4"
+                            >
+                                <div className="space-y-3">
+                                    {/* Service Image Header */}
+                                    <div className="relative w-full h-40 rounded-xl overflow-hidden bg-slate-100 border border-slate-100">
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                alt={service.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1.5">
+                                                <ImageIcon className="w-8 h-8 stroke-1" />
+                                                <span className="text-[10px] font-medium">No Image Uploaded</span>
+                                            </div>
+                                        )}
 
-                                {/* Price & Duration */}
-                                <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-                                    <div>
-                                        <span className="text-[10px] text-slate-400 uppercase font-semibold">Price</span>
-                                        <p className="text-lg font-bold text-indigo-600">৳{service.price}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-[10px] text-slate-400 uppercase font-semibold">Duration</span>
-                                        <div className="flex items-center gap-1 text-xs text-slate-700 font-medium">
-                                            <Clock className="w-3 h-3 text-slate-400" />
-                                            {service.duration} mins
+                                        {/* Status Badge Over Image */}
+                                        <div className="absolute top-2.5 right-2.5">
+                                            <span
+                                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shadow-xs backdrop-blur-md ${service.isAvailable
+                                                    ? "bg-emerald-500/90 text-white border-emerald-400"
+                                                    : "bg-amber-500/90 text-white border-amber-400"
+                                                    }`}
+                                            >
+                                                {service.isAvailable ? "Available" : "Paused"}
+                                            </span>
                                         </div>
                                     </div>
+
+                                    {/* Category */}
+                                    <div className="flex items-center justify-between">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                                            <Layers className="w-3 h-3 text-indigo-600" />
+                                            {service.category?.name || "General"}
+                                        </span>
+                                    </div>
+
+                                    {/* Title & Description */}
+                                    <div>
+                                        <h3 className="text-base font-bold text-slate-900 line-clamp-1">
+                                            {service.title}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                                            {service.description}
+                                        </p>
+                                    </div>
+
+                                    {/* Price & Duration */}
+                                    <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+                                        <div>
+                                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Price</span>
+                                            <p className="text-lg font-bold text-indigo-600">৳{service.price}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Duration</span>
+                                            <div className="flex items-center gap-1 text-xs text-slate-700 font-medium">
+                                                <Clock className="w-3 h-3 text-slate-400" />
+                                                {service.duration} mins
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Service Area */}
+                                    {service.serviceArea && service.serviceArea.length > 0 && (
+                                        <div className="flex items-start gap-1 text-[11px] text-slate-500">
+                                            <MapPin className="w-3 h-3 text-indigo-600 shrink-0 mt-0.5" />
+                                            <span className="line-clamp-1">{service.serviceArea.join(", ")}</span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Service Area */}
-                                {service.serviceArea && service.serviceArea.length > 0 && (
-                                    <div className="flex items-start gap-1 text-[11px] text-slate-500">
-                                        <MapPin className="w-3 h-3 text-indigo-600 shrink-0 mt-0.5" />
-                                        <span className="line-clamp-1">{service.serviceArea.join(", ")}</span>
-                                    </div>
-                                )}
-                            </div>
+                                {/* Action Buttons */}
+                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                    <Link
+                                        href={`/technician/services/edit?id=${service.id}`}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                    >
+                                        <Edit className="w-3.5 h-3.5 text-slate-500" />
+                                        Edit
+                                    </Link>
 
-                            {/* Action Buttons */}
-                            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                                <Link
-                                    href={`/technician/services/edit?id=${service.id}`}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-                                >
-                                    <Edit className="w-3.5 h-3.5 text-slate-500" />
-                                    Edit
-                                </Link>
-
-                                <ServiceDeleteButton serviceId={service.id} serviceTitle={service.title} />
+                                    <ServiceDeleteButton serviceId={service.id} serviceTitle={service.title} />
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

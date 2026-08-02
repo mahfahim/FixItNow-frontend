@@ -1,8 +1,9 @@
 // src/app/(dashboardGroup)/technician/_actions/technician.action.ts
+
 'use server';
 
 import { cookies } from "next/headers";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import {
   BookingStatus,
   IUpdateTechnicianProfilePayload,
@@ -24,6 +25,32 @@ async function getAuthHeaders() {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+/**
+ * Fetch availability slots for the logged-in technician
+ * Endpoint: GET /api/technicians/availability
+ */
+export async function getAvailability() {
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${BASE_URL}/api/technicians/availability`, {
+      method: "GET",
+      headers,
+      next: {
+        tags: ["technician-availability"],
+      },
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (error: unknown) {
+    console.error("Error in getAvailability:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch availability slots",
+    };
+  }
 }
 
 /**
@@ -75,7 +102,7 @@ export async function updateBookingStatus(
     const data = await res.json();
 
     if (data?.success) {
-      revalidateTag("technician-bookings", "max");
+      revalidatePath("/technician/bookings", "page");
     }
 
     return data;
@@ -104,8 +131,10 @@ export async function updateProfile(payload: IUpdateTechnicianProfilePayload) {
     const data = await res.json();
 
     if (data?.success) {
-      revalidateTag("technicians", "max");
-      revalidateTag("technician-profile", "max");
+      //  "page"-এর বদলে "max" দিন (অথবা শুধু revalidateTag("user-profile") লিখুন)
+      revalidateTag("user-profile", "max"); 
+      revalidatePath("/technician/profile", "page");
+      revalidatePath("/technician/profile/edit", "page");
     }
 
     return data;
@@ -134,8 +163,8 @@ export async function setAvailability(payload: IAvailabilitySlotPayload[]) {
     const data = await res.json();
 
     if (data?.success) {
-      revalidateTag("technician-availability", "max");
-      revalidateTag("technicians", "max");
+      revalidatePath("/technician/availability", "page");
+      revalidatePath("/technician/availability/edit", "page");
     }
 
     return data;

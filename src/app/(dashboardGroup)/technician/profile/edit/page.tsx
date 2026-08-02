@@ -1,38 +1,30 @@
-// src/app/(dashboardGroup)/technician/profile/edit/page.tsx
-
-import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
 import { ProfileForm } from "../../_components/profile-form";
-import { ArrowLeft } from "lucide-react";
-import { IUser } from "@/types";
+import { IUser, ITechnician } from "@/types";
+
+export const dynamic = "force-dynamic";
 
 export default async function EditProfilePage() {
     const profileRes = await getMyProfile();
     const user: IUser = profileRes?.data || profileRes?.result;
-    const techProfile = user?.technicianProfile;
+    const techProfile: ITechnician | null = user?.technicianProfile || null;
+
+    // React-কে কম্পোনেন্টটি রি-রেন্ডার করতে বাধ্য করার জন্য একটি key তৈরি করা হলো
+    const updateKey = techProfile?.updatedAt
+        ? new Date(techProfile.updatedAt).getTime()
+        : user?.id || "profile-form";
 
     return (
-        <div className="max-w-3xl mx-auto space-y-6">
-            {/* Navigation Header */}
-            <div className="flex items-center justify-between">
-                <Link
-                    href="/technician/profile"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Profile
-                </Link>
-            </div>
-
-            <div>
+        <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+            <div className="border-b border-slate-200 pb-5">
                 <h1 className="text-2xl font-bold text-slate-900">Edit Profile</h1>
-                <p className="text-sm text-slate-500 mt-0.5">
-                    Update your professional details to attract more customers.
+                <p className="text-sm text-slate-500 mt-1">
+                    Update your professional bio, rates, personal details, and address.
                 </p>
             </div>
 
-            {/* Profile Form Component */}
-            <ProfileForm initialData={techProfile} />
+            {/* Profile PATCH Form with initial data and key */}
+            <ProfileForm key={updateKey} initialUser={user} initialTechData={techProfile} />
         </div>
     );
 }

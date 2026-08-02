@@ -1,14 +1,16 @@
 // src/app/(dashboardGroup)/technician/availability/edit/page.tsx
 
 import Link from "next/link";
-import { getMyProfile } from "@/actions/getMe.action";
+import { getAvailability } from "../../_actions/technician.action";
 import { AvailabilityForm } from "../../_components/availability-form";
 import { ArrowLeft } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function EditAvailabilityPage() {
-    const profileRes = await getMyProfile();
-    const user = profileRes?.data || profileRes?.result;
-    const availabilitySlots = user?.technicianProfile?.availabilitySlots || [];
+    const res = await getAvailability();
+    const availabilitySlots = res?.data || res?.result || [];
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">

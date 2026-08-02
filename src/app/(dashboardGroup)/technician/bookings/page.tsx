@@ -26,8 +26,22 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
         { page, limit: 10 }
     );
 
-    const bookings: IBooking[] = response?.data || response?.result || [];
-    const meta = response?.meta || { total: bookings.length, totalPage: 1 };
+
+    console.log("Technician Bookings API Response:", JSON.stringify(response, null, 2));
+
+    const rawData = response?.data;
+
+
+
+    const bookings: IBooking[] = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.data) // 👈 ব্যাকএন্ডের response.data.data চেক করা হচ্ছে
+            ? rawData.data
+            : Array.isArray(response?.result)
+                ? response.result
+                : [];
+
+    const meta = rawData?.meta || response?.meta || { total: bookings.length, totalPage: 1 };
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -60,8 +74,8 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
                     <Link
                         href="/technician/bookings"
                         className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${!statusFilter
-                                ? "bg-indigo-600 text-white"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            ? "bg-indigo-600 text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                             }`}
                     >
                         All
@@ -71,8 +85,8 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
                             key={st}
                             href={`/technician/bookings?status=${st}`}
                             className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${statusFilter === st
-                                    ? "bg-indigo-600 text-white"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                ? "bg-indigo-600 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                 }`}
                         >
                             {st.replace("_", " ")}
@@ -92,70 +106,83 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
-                    {bookings.map((booking) => (
-                        <div
-                            key={booking.id}
-                            className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 transition-all space-y-4"
-                        >
-                            {/* Top Row: Service & Status */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                                <div>
-                                    <span className="text-[10px] font-mono text-slate-400">ID: {booking.id}</span>
-                                    <h3 className="text-base font-bold text-slate-900">
-                                        {booking.service?.title || "Requested Service"}
-                                    </h3>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <StatusBadge status={booking.status} />
-                                    <StatusBadge status={booking.paymentStatus} type="payment" />
-                                </div>
-                            </div>
+                    {bookings.map((booking) => {
 
-                            {/* Middle Row: Date, Customer, Address & Price */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-600">
-                                <div className="space-y-1.5">
-                                    <p className="font-semibold text-slate-800">Customer Details:</p>
-                                    <p className="text-slate-700 font-medium">{booking.customer?.name || "N/A"}</p>
-                                    <p className="text-slate-500">{booking.customer?.email}</p>
-                                </div>
+                        const bookingId = booking.id || (booking as unknown as { _id: string })._id;
 
-                                <div className="space-y-1.5">
-                                    <p className="font-semibold text-slate-800">Schedule & Location:</p>
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                                        <span>{new Date(booking.scheduledDate).toLocaleDateString()}</span>
-                                        <Clock className="w-3.5 h-3.5 text-indigo-600 ml-2" />
-                                        <span>{booking.scheduledTime}</span>
+                        return (
+                            <div
+                                key={bookingId}
+                                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs hover:border-slate-300 transition-all space-y-4"
+                            >
+                                {/* Top Row: Service & Status */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                                    <div>
+                                        <span className="text-[10px] font-mono text-slate-400">
+                                            ID: {bookingId}
+                                        </span>
+                                        <h3 className="text-base font-bold text-slate-900">
+                                            {booking.service?.title || "Requested Service"}
+                                        </h3>
                                     </div>
-                                    <div className="flex items-start gap-1.5">
-                                        <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
-                                        <span className="line-clamp-1">{booking.address}</span>
+                                    <div className="flex items-center gap-2">
+                                        <StatusBadge status={booking.status} />
+                                        <StatusBadge status={booking.paymentStatus} type="payment" />
                                     </div>
                                 </div>
 
-                                <div className="space-y-1.5 md:text-right">
-                                    <p className="font-semibold text-slate-800">Total Price:</p>
-                                    <p className="text-lg font-bold text-indigo-600">৳{booking.price}</p>
+                                {/* Middle Row: Date, Customer, Address & Price */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-600">
+                                    <div className="space-y-1.5">
+                                        <p className="font-semibold text-slate-800">Customer Details:</p>
+                                        <p className="text-slate-700 font-medium">
+                                            {booking.customer?.name || "N/A"}
+                                        </p>
+                                        <p className="text-slate-500">{booking.customer?.email}</p>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <p className="font-semibold text-slate-800">Schedule & Location:</p>
+                                        <div className="flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                                            <span>
+                                                {booking.scheduledDate
+                                                    ? new Date(booking.scheduledDate).toLocaleDateString()
+                                                    : "N/A"}
+                                            </span>
+                                            <Clock className="w-3.5 h-3.5 text-indigo-600 ml-2" />
+                                            <span>{booking.scheduledTime || "N/A"}</span>
+                                        </div>
+                                        <div className="flex items-start gap-1.5">
+                                            <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                                            <span className="line-clamp-1">{booking.address || "N/A"}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5 md:text-right">
+                                        <p className="font-semibold text-slate-800">Total Price:</p>
+                                        <p className="text-lg font-bold text-indigo-600">${booking.price || 0}</p>
+                                    </div>
+                                </div>
+
+                                {/* Bottom Action Bar */}
+                                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                    <BookingActionsClient
+                                        bookingId={bookingId}
+                                        currentStatus={booking.status}
+                                    />
+
+                                    <Link
+                                        href={`/technician/bookings/${bookingId}`}
+                                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                                    >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        View Details
+                                    </Link>
                                 </div>
                             </div>
-
-                            {/* Bottom Action Bar */}
-                            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                                <BookingActionsClient
-                                    bookingId={booking.id}
-                                    currentStatus={booking.status}
-                                />
-
-                                <Link
-                                    href={`/technician/bookings/${booking.id}`}
-                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-                                >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    View Details
-                                </Link>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

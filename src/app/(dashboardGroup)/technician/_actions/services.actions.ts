@@ -1,4 +1,5 @@
 // src/app/(dashboardGroup)/technician/_actions/services.actions.ts
+
 'use server';
 
 import { cookies } from "next/headers";
@@ -10,9 +11,6 @@ import {
 
 const BASE_URL = process.env.BACKEND_API_URL as string;
 
-/**
- * Helper function to retrieve authorization headers using cookies
- */
 async function getAuthHeaders() {
   const cookieStore = await cookies();
   const token =
@@ -25,10 +23,6 @@ async function getAuthHeaders() {
   };
 }
 
-/**
- * Create a new service (Technician & Admin)
- * Endpoint: POST /api/services
- */
 export async function createService(payload: ICreateServicePayload) {
   try {
     const headers = await getAuthHeaders();
@@ -37,6 +31,14 @@ export async function createService(payload: ICreateServicePayload) {
       headers,
       body: JSON.stringify(payload),
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData?.message || `Server responded with status: ${res.status}`,
+      };
+    }
 
     const data = await res.json();
 
@@ -54,10 +56,6 @@ export async function createService(payload: ICreateServicePayload) {
   }
 }
 
-/**
- * Update an existing service by ID (Technician & Admin)
- * Endpoint: PATCH /api/services/:id
- */
 export async function updateService(
   id: string,
   payload: IUpdateServicePayload
@@ -69,6 +67,14 @@ export async function updateService(
       headers,
       body: JSON.stringify(payload),
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData?.message || `Server responded with status: ${res.status}`,
+      };
+    }
 
     const data = await res.json();
 
@@ -87,10 +93,6 @@ export async function updateService(
   }
 }
 
-/**
- * Soft delete a service by ID (Technician & Admin)
- * Endpoint: DELETE /api/services/:id
- */
 export async function deleteService(id: string) {
   try {
     const headers = await getAuthHeaders();
@@ -98,6 +100,14 @@ export async function deleteService(id: string) {
       method: "DELETE",
       headers,
     });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData?.message || `Server responded with status: ${res.status}`,
+      };
+    }
 
     const data = await res.json();
 

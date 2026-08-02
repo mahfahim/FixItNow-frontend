@@ -3,7 +3,7 @@
 
 import { cookies } from "next/headers";
 import { revalidateTag } from "next/cache";
-import { ICreateAddress } from "@/types";
+import { ICreateAddress } from "@/types/auth.types";
 
 const BASE_URL = process.env.BACKEND_API_URL as string;
 

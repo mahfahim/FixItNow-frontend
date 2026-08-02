@@ -1,4 +1,3 @@
-// 
 "use client";
 
 import { useState } from "react";
@@ -31,7 +30,7 @@ export function ServiceForm({
         price: initialData?.price ? String(initialData.price) : "",
         duration: initialData?.duration ? String(initialData.duration) : "60",
         serviceArea: initialData?.serviceArea ? initialData.serviceArea.join(", ") : "",
-        images: initialData?.images ? initialData.images.join(", ") : "",
+        images: initialData?.images ? initialData.images.join("\n") : "", // নিউলাইন বা কমা সাপোর্টের জন্য
         isAvailable: initialData?.isAvailable ?? true,
     });
 
@@ -64,8 +63,9 @@ export function ServiceForm({
                 .map((s) => s.trim())
                 .filter(Boolean);
 
+            // সেফলি ইমেজ পার্সিং (কমা বা নিউলাইন উভয় সাপোর্ট করবে)
             const parsedImages = formData.images
-                .split(",")
+                .split(/[\n,]+/)
                 .map((s) => s.trim())
                 .filter(Boolean);
 
@@ -82,11 +82,13 @@ export function ServiceForm({
                 };
 
                 const res = await updateService(initialData.id, payload);
+
                 if (res?.success) {
+                    // router.refresh() সরিয়ে শুধুমাত্র push কল করা হয়েছে
                     router.push("/technician/services");
-                    router.refresh();
                 } else {
                     setErrorMsg(res?.message || "Failed to update service");
+                    setLoading(false);
                 }
             } else {
                 const payload = {
@@ -101,17 +103,17 @@ export function ServiceForm({
                 };
 
                 const res = await createService(payload);
+
                 if (res?.success) {
                     router.push("/technician/services");
-                    router.refresh();
                 } else {
                     setErrorMsg(res?.message || "Failed to create service");
+                    setLoading(false);
                 }
             }
         } catch (err) {
-            console.error(err);
-            setErrorMsg("An unexpected error occurred.");
-        } finally {
+            console.error("Submit Error:", err);
+            setErrorMsg("An unexpected error occurred. Please check network/image URLs.");
             setLoading(false);
         }
     };
@@ -213,11 +215,11 @@ export function ServiceForm({
                 {/* Images URLs */}
                 <div className="space-y-1.5 md:col-span-2">
                     <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                        <ImageIcon className="w-3.5 h-3.5 text-indigo-600" /> Image URLs (Comma separated)
+                        <ImageIcon className="w-3.5 h-3.5 text-indigo-600" /> Image URLs (Comma or Newline separated)
                     </label>
-                    <input
-                        type="text"
+                    <textarea
                         name="images"
+                        rows={2}
                         value={formData.images}
                         onChange={handleChange}
                         placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
@@ -239,7 +241,7 @@ export function ServiceForm({
                     />
                 </div>
 
-                {/* Status Toggle (Edit mode only) */}
+                {/* Status Toggle */}
                 {isEdit && (
                     <div className="flex items-center gap-3 md:col-span-2 pt-2">
                         <input

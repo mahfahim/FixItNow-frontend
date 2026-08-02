@@ -11,6 +11,7 @@ const BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
 async function getCategories(): Promise<ICategory[]> {
     try {
         const res = await fetch(`${BASE_URL}/api/categories`, { cache: "no-store" });
+        if (!res.ok) return [];
         const data = await res.json();
         return data?.data || data?.result || [];
     } catch (error) {
