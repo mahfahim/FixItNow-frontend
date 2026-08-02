@@ -1,7 +1,11 @@
+import { Suspense } from "react";
 import { getCustomerBookings } from "../_actions/booking.actions";
 import { BookingCustomerView } from "../_components/booking-customer";
-import { CalendarCheck, AlertCircle } from "lucide-react";
+import { CalendarCheck, AlertCircle, Loader2 } from "lucide-react";
 import { BookingStatus } from "@/types";
+
+//  1. Force dynamic rendering for cookie/auth actions
+export const dynamic = "force-dynamic";
 
 interface PageProps {
     searchParams: Promise<{
@@ -45,11 +49,17 @@ export default async function CustomerBookingsPage({ searchParams }: PageProps) 
                 </div>
             )}
 
-            {/* Customer Shared View */}
-            <BookingCustomerView
-                bookings={bookings}
-                currentStatus={resolvedParams.status}
-            />
+            {/* ✅ 2. Wrap client view in Suspense */}
+            <Suspense fallback={
+                <div className="flex items-center justify-center p-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+            }>
+                <BookingCustomerView
+                    bookings={bookings}
+                    currentStatus={resolvedParams.status}
+                />
+            </Suspense>
         </div>
     );
 }
