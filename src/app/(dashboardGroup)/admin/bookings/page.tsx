@@ -1,21 +1,20 @@
-// src/app/(dashboardGroup)/admin/bookings/page.tsx
-
+import { Suspense } from "react";
 import { getAllBookingsAdmin } from "../_actions/admin.actions";
 import AdminBookingsTable from "../_components/AdminBookingsTable";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
-    searchParams: { [key: string]: string | string[] | undefined };
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function AdminBookingsPage({ searchParams }: Props) {
-    
-    const page = Number(searchParams.page) || 1;
-    const limit = Number(searchParams.limit) || 10;
-
+    const resolvedParams = await searchParams;
+    const page = Number(resolvedParams.page) || 1;
+    const limit = Number(resolvedParams.limit) || 10;
 
     const response = await getAllBookingsAdmin({ page, limit });
 
-    
     const bookings = response?.data || [];
     const meta = response?.meta || { page: 1, limit: 10, total: 0 };
 
@@ -31,8 +30,10 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <AdminBookingsTable bookings={bookings} meta={meta} />
+                <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading bookings table...</div>}>
+                    <AdminBookingsTable bookings={bookings} meta={meta} />
+                </Suspense>
             </div>
         </div>
     );
-} 
+}
