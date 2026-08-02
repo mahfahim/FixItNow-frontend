@@ -1,4 +1,5 @@
 // src/types/payment.types.ts
+// src/types/payment.types.ts
 import { PaymentProvider, PaymentStatus } from "./enums";
 
 export type ICreatePaymentPayload = {
@@ -7,8 +8,10 @@ export type ICreatePaymentPayload = {
 };
 
 export type IConfirmPaymentPayload = {
-  sessionId: string;
+  sessionId?: string;
   transactionId?: string;
+  tranId?: string;
+  bookingId?: string;
 };
 
 export type IRefundPaymentPayload = {
