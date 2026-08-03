@@ -1,12 +1,35 @@
+// src/app/(dashboardGroup)/customer/_components/booking-customer.tsx
 "use client";
 
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
-import { IBooking, BookingStatus, PaymentStatus } from "@/types";
+import { IBooking, BookingStatus, PaymentStatus, PaymentProvider } from "@/types";
 import { cancelCustomerBooking } from "../_actions/booking.actions";
 import { createPaymentIntent } from "@/app/(payment)/_actions/payment.actions";
 import { cancelBookingSchema } from "../_schema/booking.schema";
 import CreateReviewModal from "../_components/CreateReviewModal";
+import { useToast } from "@/providers/toast-provider";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+    CardFooter,
+} from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+
 import {
     Calendar,
     Clock,
@@ -36,14 +59,19 @@ export function BookingCustomerCard({
     booking: IBooking;
     onCancelSuccess?: (id: string) => void;
 }) {
+    const { success, error: toastError } = useToast();
     const [isPending, startTransition] = useTransition();
     const [isPaying, setIsPaying] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-    // রিভিউ দেওয়া আছে কিনা তা চেক করে লোকাল স্টেট সেট করা
     const [isReviewed, setIsReviewed] = useState<boolean>(
-        Boolean(booking.review && (typeof booking.review === "object" ? Object.keys(booking.review).length > 0 : true))
+        Boolean(
+            booking.review &&
+            (typeof booking.review === "object"
+                ? Object.keys(booking.review).length > 0
+                : true)
+        )
     );
 
     const [reason, setReason] = useState("");
@@ -66,19 +94,19 @@ export function BookingCustomerCard({
     const getStatusBadge = (status: BookingStatus) => {
         switch (status) {
             case BookingStatus.REQUESTED:
-                return { label: "Requested", bg: "bg-amber-50 text-amber-700 border-amber-200" };
+                return { label: "Requested", className: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50" };
             case BookingStatus.ACCEPTED:
-                return { label: "Accepted", bg: "bg-blue-50 text-blue-700 border-blue-200" };
+                return { label: "Accepted", className: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-50" };
             case BookingStatus.IN_PROGRESS:
-                return { label: "In Progress", bg: "bg-purple-50 text-purple-700 border-purple-200" };
+                return { label: "In Progress", className: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-50" };
             case BookingStatus.COMPLETED:
-                return { label: "Completed", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+                return { label: "Completed", className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50" };
             case BookingStatus.DECLINED:
-                return { label: "Declined", bg: "bg-rose-50 text-rose-700 border-rose-200" };
+                return { label: "Declined", className: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50" };
             case BookingStatus.CANCELLED:
-                return { label: "Cancelled", bg: "bg-slate-100 text-slate-600 border-slate-200" };
+                return { label: "Cancelled", className: "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-100" };
             default:
-                return { label: status, bg: "bg-slate-50 text-slate-700 border-slate-200" };
+                return { label: status, className: "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-50" };
         }
     };
 
@@ -92,20 +120,25 @@ export function BookingCustomerCard({
         try {
             const res = await createPaymentIntent({
                 bookingId,
-                provider: "STRIPE",
+                provider: PaymentProvider.STRIPE,
             });
 
             const gatewayUrl = res?.data?.gatewayUrl || res?.gatewayUrl || res?.data?.url;
 
             if (res?.success && gatewayUrl) {
+                success("Redirecting", "Taking you to payment gateway...");
                 window.location.href = gatewayUrl;
             } else {
-                setErrorMsg(res?.message || "Failed to initialize payment gateway.");
+                const msg = res?.message || "Failed to initialize payment gateway.";
+                setErrorMsg(msg);
+                toastError("Payment Failed", msg);
                 setIsPaying(false);
             }
         } catch (err) {
             console.error(err);
-            setErrorMsg("An unexpected error occurred during payment.");
+            const msg = "An unexpected error occurred during payment.";
+            setErrorMsg(msg);
+            toastError("Payment Error", msg);
             setIsPaying(false);
         }
     };
@@ -118,6 +151,7 @@ export function BookingCustomerCard({
         if (!validation.success) {
             const firstError = validation.error.issues[0]?.message || "Invalid cancellation reason.";
             setErrorMsg(firstError);
+            toastError("Validation Error", firstError);
             return;
         }
 
@@ -125,11 +159,14 @@ export function BookingCustomerCard({
         startTransition(async () => {
             const res = await cancelCustomerBooking(bookingId, validation.data.cancellationReason);
             if (res.success) {
+                success("Booking Cancelled", "Your booking request has been cancelled.");
                 setShowCancelModal(false);
                 setReason("");
                 if (onCancelSuccess) onCancelSuccess(bookingId);
             } else {
-                setErrorMsg(res.error || res.message || "Failed to cancel booking.");
+                const msg = res.error || res.message || "Failed to cancel booking.";
+                setErrorMsg(msg);
+                toastError("Cancellation Failed", msg);
             }
         });
     };
@@ -143,24 +180,29 @@ export function BookingCustomerCard({
         booking.paymentStatus !== PaymentStatus.COMPLETED;
 
     return (
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4">
-            <div className="space-y-3">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+            <CardHeader className="pb-3 border-b border-slate-100 space-y-0">
+                <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5">
                         <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
                             <Wrench className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-900 text-base line-clamp-1">{serviceTitle}</h3>
-                            <p className="text-xs text-slate-400 font-mono">ID: {bookingId?.slice(-8)}</p>
+                            <CardTitle className="font-semibold text-slate-900 text-base line-clamp-1">
+                                {serviceTitle}
+                            </CardTitle>
+                            <p className="text-xs text-slate-400 font-mono">
+                                ID: {bookingId?.slice(-8)}
+                            </p>
                         </div>
                     </div>
-                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${statusInfo.bg}`}>
+                    <Badge variant="outline" className={`px-2.5 py-1 text-xs font-semibold rounded-full ${statusInfo.className}`}>
                         {statusInfo.label}
-                    </span>
+                    </Badge>
                 </div>
+            </CardHeader>
 
+            <CardContent className="pt-4 space-y-3">
                 {/* Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-slate-600">
                     <div className="flex items-center gap-2">
@@ -201,10 +243,10 @@ export function BookingCustomerCard({
                         <span>{errorMsg}</span>
                     </div>
                 )}
-            </div>
+            </CardContent>
 
             {/* Actions Footer */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+            <CardFooter className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                 <div>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
                         Total Price
@@ -214,22 +256,25 @@ export function BookingCustomerCard({
 
                 <div className="flex items-center gap-2">
                     {canBeCancelled && (
-                        <button
+                        <Button
+                            type="button"
+                            variant="ghost"
                             onClick={() => {
                                 setErrorMsg("");
                                 setShowCancelModal(true);
                             }}
-                            className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
+                            className="px-3 py-1.5 h-auto text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 rounded-lg"
                         >
                             Cancel
-                        </button>
+                        </Button>
                     )}
 
                     {canPayNow ? (
-                        <button
+                        <Button
+                            type="button"
                             onClick={handlePayNow}
                             disabled={isPaying}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-auto px-3.5 py-1.5 rounded-lg gap-1.5"
                         >
                             {isPaying ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -237,95 +282,98 @@ export function BookingCustomerCard({
                                 <ExternalLink className="w-3.5 h-3.5" />
                             )}
                             Pay Now
-                        </button>
+                        </Button>
                     ) : (
-                        <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg border ${booking.paymentStatus === PaymentStatus.COMPLETED
+                        <Badge
+                            variant="outline"
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg ${booking.paymentStatus === PaymentStatus.COMPLETED
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : "bg-amber-50 text-amber-700 border-amber-200"
                                 }`}
                         >
                             <CreditCard className="w-3.5 h-3.5" />
                             {booking.paymentStatus === PaymentStatus.COMPLETED ? "Paid" : "Unpaid"}
-                        </span>
+                        </Badge>
                     )}
 
-                    {/* COMPLETED বুকিংয়ের জন্য রিভিউ লজিক */}
+                    {/* COMPLETED Booking Review Logic */}
                     {booking.status === BookingStatus.COMPLETED && (
                         isReviewed ? (
-                            <button
+                            <Button
                                 disabled
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed opacity-80"
+                                variant="outline"
+                                className="px-3 py-1.5 h-auto text-xs font-semibold text-slate-500 bg-slate-100 border-slate-200 rounded-lg opacity-80 gap-1.5"
                             >
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                 {booking.review?.rating ? `${booking.review.rating}.0 Rated` : "Review Done"}
-                            </button>
+                            </Button>
                         ) : (
-                            <button
+                            <Button
+                                type="button"
                                 onClick={() => setIsReviewModalOpen(true)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-all shadow-xs cursor-pointer"
+                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs h-auto px-3 py-1.5 rounded-lg gap-1.5"
                             >
                                 <Star className="w-3.5 h-3.5 fill-white" />
                                 Write Review
-                            </button>
+                            </Button>
                         )
                     )}
                 </div>
-            </div>
+            </CardFooter>
 
             {/* Cancel Modal */}
-            {showCancelModal && (
-                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                        <div className="flex items-center justify-between border-b pb-3">
-                            <h4 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <AlertCircle className="w-5 h-5 text-rose-500" />
-                                Cancel Booking
-                            </h4>
-                            <button
-                                onClick={() => setShowCancelModal(false)}
-                                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
-                            >
-                                ✕
-                            </button>
-                        </div>
+            <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+                <DialogContent className="sm:max-w-md bg-white p-6 rounded-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 text-rose-500" />
+                            Cancel Booking
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-600 pt-1">
+                            Are you sure you want to cancel this booking? Please provide a reason below:
+                        </DialogDescription>
+                    </DialogHeader>
 
-                        <p className="text-xs text-slate-600">
-                            Are you sure you want to cancel this booking? Please provide a reason:
-                        </p>
-
-                        <textarea
+                    <div className="space-y-3 py-2">
+                        <Textarea
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                             placeholder="Reason for cancellation..."
                             rows={3}
-                            className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="text-xs resize-none"
                         />
-
-                        {errorMsg && <p className="text-xs text-rose-600 font-medium">{errorMsg}</p>}
-
-                        <div className="flex justify-end gap-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => setShowCancelModal(false)}
-                                disabled={isPending}
-                                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
-                            >
-                                Keep Booking
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleCancelSubmit}
-                                disabled={isPending}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
-                            >
-                                {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
-                                Confirm Cancel
-                            </button>
-                        </div>
+                        {errorMsg && (
+                            <p className="text-xs text-rose-600 font-medium">{errorMsg}</p>
+                        )}
                     </div>
-                </div>
-            )}
+
+                    <DialogFooter className="flex justify-end gap-2 pt-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowCancelModal(false)}
+                            disabled={isPending}
+                            className="text-xs font-semibold rounded-xl"
+                        >
+                            Keep Booking
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleCancelSubmit}
+                            disabled={isPending}
+                            className="text-xs font-semibold rounded-xl gap-1.5"
+                        >
+                            {isPending ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                                <XCircle className="w-3.5 h-3.5" />
+                            )}
+                            Confirm Cancel
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Create Review Modal */}
             {isReviewModalOpen && bookingId && (
@@ -338,14 +386,18 @@ export function BookingCustomerCard({
                     onSuccess={() => {
                         setIsReviewModalOpen(false);
                         setIsReviewed(true);
+                        success("Review Submitted", "Thank you for sharing your feedback.");
                     }}
                 />
             )}
-        </div>
+        </Card>
     );
 }
 
-export function BookingCustomerView({ bookings, currentStatus }: BookingCustomerViewProps) {
+export function BookingCustomerView({
+    bookings,
+    currentStatus,
+}: BookingCustomerViewProps) {
     const [activeTab, setActiveTab] = useState<string>(currentStatus || "ALL");
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -377,28 +429,30 @@ export function BookingCustomerView({ bookings, currentStatus }: BookingCustomer
                     {filterTabs.map((tab) => {
                         const isActive = activeTab === tab.value;
                         return (
-                            <button
+                            <Button
                                 key={tab.value}
+                                type="button"
+                                variant={isActive ? "default" : "outline"}
                                 onClick={() => setActiveTab(tab.value)}
-                                className={`px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all cursor-pointer ${isActive
-                                    ? "bg-blue-600 text-white shadow-xs"
-                                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                className={`text-xs font-semibold rounded-xl whitespace-nowrap px-4 py-2 h-auto ${isActive
+                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+                                    : "bg-white text-slate-600 hover:bg-slate-50 border-slate-200"
                                     }`}
                             >
                                 {tab.label}
-                            </button>
+                            </Button>
                         );
                     })}
                 </div>
 
                 <div className="relative w-full sm:w-64">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                    <Input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search service/tech..."
-                        className="w-full text-xs pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="pl-9 text-xs rounded-xl bg-white border-slate-200"
                     />
                 </div>
             </div>
@@ -407,13 +461,17 @@ export function BookingCustomerView({ bookings, currentStatus }: BookingCustomer
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredBookings.map((booking, index) => (
                         <BookingCustomerCard
-                            key={booking.id || (booking as unknown as { _id?: string })._id || `booking-${index}`}
+                            key={
+                                booking.id ||
+                                (booking as unknown as { _id?: string })._id ||
+                                `booking-${index}`
+                            }
                             booking={booking}
                         />
                     ))}
                 </div>
             ) : (
-                <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3 shadow-xs">
+                <Card className="rounded-2xl border-slate-200 bg-white p-12 text-center flex flex-col items-center justify-center space-y-3 shadow-xs">
                     <CheckCircle2 className="w-12 h-12 text-slate-300" />
                     <h3 className="text-lg font-semibold text-slate-900">No Bookings Found</h3>
                     <p className="text-xs text-slate-500 max-w-sm">
@@ -421,13 +479,12 @@ export function BookingCustomerView({ bookings, currentStatus }: BookingCustomer
                             ? "You haven't placed any service requests yet."
                             : `No bookings found with status "${activeTab}".`}
                     </p>
-                    <Link
-                        href="/customer/dashboard/technicians"
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl transition-all"
-                    >
-                        Browse Technicians
+                    <Link href="/customer/dashboard/technicians">
+                        <Button className="mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl">
+                            Browse Technicians
+                        </Button>
                     </Link>
-                </div>
+                </Card>
             )}
         </div>
     );

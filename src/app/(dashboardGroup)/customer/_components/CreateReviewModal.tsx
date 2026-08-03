@@ -1,9 +1,22 @@
-
+// src/app/(dashboardGroup)/customer/_components/CreateReviewModal.tsx
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Star, X, Loader2, MessageSquare } from "lucide-react";
+import { Star, Loader2, MessageSquare, AlertCircle } from "lucide-react";
 import { createReview } from "../_actions/review.actions";
+import { useToast } from "@/providers/toast-provider";
+
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
 interface CreateReviewModalProps {
     isOpen: boolean;
@@ -24,13 +37,12 @@ export default function CreateReviewModal({
     onClose,
     onSuccess,
 }: CreateReviewModalProps) {
+    const { success, error: toastError } = useToast();
     const [rating, setRating] = useState<number>(5);
     const [hoverRating, setHoverRating] = useState<number>(0);
     const [comment, setComment] = useState<string>("");
     const [errorMsg, setErrorMsg] = useState<string>("");
     const [isPending, startTransition] = useTransition();
-
-    if (!isOpen) return null;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,44 +59,44 @@ export default function CreateReviewModal({
             );
 
             if (res.success) {
+                success("Review Submitted", "Thank you for sharing your feedback!");
                 if (onSuccess) onSuccess();
                 onClose();
             } else {
-                setErrorMsg(res.error || res.message || "Failed to submit review.");
+                const msg = res.error || res.message || "Failed to submit review.";
+                setErrorMsg(msg);
+                toastError("Submission Failed", msg);
             }
         });
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-                {/* Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
-                >
-                    <X className="w-5 h-5" />
-                </button>
-
-                {/* Modal Header */}
-                <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-slate-900">Leave a Review</h3>
-                    <p className="text-xs text-slate-500">
-                        Share your feedback for <span className="font-semibold text-slate-700">{serviceTitle}</span> by{" "}
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-md bg-white p-6 rounded-2xl">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-bold text-slate-900">
+                        Leave a Review
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-slate-500 pt-1">
+                        Share your feedback for{" "}
+                        <span className="font-semibold text-slate-700">{serviceTitle}</span> by{" "}
                         <span className="font-semibold text-slate-700">{technicianName}</span>.
-                    </p>
-                </div>
+                    </DialogDescription>
+                </DialogHeader>
 
                 {errorMsg && (
-                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 text-xs rounded-xl">
-                        {errorMsg}
+                    <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{errorMsg}</span>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Rating Selection */}
-                    <div className="space-y-1.5 text-center py-2 bg-slate-50 rounded-2xl border border-slate-100">
-                        <label className="text-xs font-semibold text-slate-600 block">Overall Rating</label>
+                    <div className="space-y-1.5 text-center py-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <Label className="text-xs font-semibold text-slate-600 block">
+                            Overall Rating
+                        </Label>
                         <div className="flex justify-center gap-1.5">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button
@@ -108,45 +120,47 @@ export default function CreateReviewModal({
 
                     {/* Comment Textarea */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                        <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                             <MessageSquare className="w-3.5 h-3.5" />
                             Your Feedback (Optional)
-                        </label>
-                        <textarea
+                        </Label>
+                        <Textarea
                             rows={3}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="How was the technician's service?"
-                            className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+                            className="text-xs resize-none rounded-xl border-slate-200"
                         />
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-3 pt-2">
-                        <button
+                    <DialogFooter className="flex items-center gap-2 pt-2">
+                        <Button
                             type="button"
+                            variant="outline"
                             onClick={onClose}
-                            className="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-xs hover:bg-slate-200 transition-colors"
+                            disabled={isPending}
+                            className="flex-1 text-xs font-semibold rounded-xl"
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={isPending}
-                            className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-xs hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-md"
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl gap-2 shadow-xs"
                         >
                             {isPending ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                     Submitting...
                                 </>
                             ) : (
                                 "Submit Review"
                             )}
-                        </button>
-                    </div>
+                        </Button>
+                    </DialogFooter>
                 </form>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }
