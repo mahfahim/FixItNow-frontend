@@ -13,12 +13,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, FolderPlus, ArrowLeft, Save } from "lucide-react";
+import { Loader2, FolderPlus, ArrowLeft, Save, AlertCircle } from "lucide-react";
 
 interface CategoryFormProps {
   initialData?: ICategory;
   isEditing?: boolean;
   basePath?: string;
+}
+
+interface FormErrors {
+  name?: string;
+  slug?: string;
+  icon?: string;
+  description?: string;
+  general?: string;
 }
 
 export default function CategoryForm({
@@ -28,21 +36,47 @@ export default function CategoryForm({
 }: CategoryFormProps) {
   const router = useRouter();
   const { success, error: toastError } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
+  const [isPending, setIsPending] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [formData, setFormData] = useState<ICreateCategoryPayload>({
-    name: initialData?.name || "",
-    slug: initialData?.slug || "",
-    icon: initialData?.icon || "",
-    description: initialData?.description || "",
+    name: initialData?.name ?? "",
+    slug: initialData?.slug ?? "",
+    icon: initialData?.icon ?? "",
+    description: initialData?.description ?? "",
     isActive: initialData?.isActive ?? true,
   });
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    const name = formData.name ?? "";
+    const slug = formData.slug ?? "";
+
+    if (!name.trim()) {
+      newErrors.name = "Category name is required.";
+    }
+
+    if (!slug.trim()) {
+      newErrors.slug = "Slug is required.";
+    } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      newErrors.slug = "Slug must contain only lowercase letters, numbers, and hyphens.";
+    }
+
+    if (formData.icon && !/^https?:\/\/.+/.test(formData.icon)) {
+      newErrors.icon = "Please enter a valid URL (starting with http:// or https://).";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    setErrors((prev) => ({ ...prev, [name]: undefined, general: undefined }));
 
     setFormData((prev) => {
       const newData = { ...prev, [name]: value };
@@ -52,6 +86,8 @@ export default function CategoryForm({
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)+/g, "");
+
+        setErrors((prev) => ({ ...prev, slug: undefined }));
       }
 
       return newData;
@@ -64,16 +100,16 @@ export default function CategoryForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    if (!validateForm()) return;
+
+    setIsPending(true);
 
     try {
-      let res;
-      if (isEditing && initialData?.id) {
-        res = await updateCategory(initialData.id, formData as IUpdateCategoryPayload);
-      } else {
-        res = await createCategory(formData);
-      }
+      const categoryId = initialData?.id;
+      const res =
+        isEditing && categoryId
+          ? await updateCategory(categoryId, formData as IUpdateCategoryPayload)
+          : await createCategory(formData);
 
       if (res?.success) {
         success(
@@ -91,24 +127,28 @@ export default function CategoryForm({
           });
         }
 
+        router.refresh();
         router.push(`${basePath}/categories`);
       } else {
         const msg = res?.message || "Failed to save category. Please try again.";
-        setError(msg);
+        setErrors((prev) => ({ ...prev, general: msg }));
         toastError("Operation Failed", msg);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error submitting category:", err);
-      const msg = "An unexpected error occurred. Please try again.";
-      setError(msg);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred. Please try again.";
+      setErrors((prev) => ({ ...prev, general: msg }));
       toastError("Error", msg);
     } finally {
-      setLoading(false);
+      setIsPending(false);
     }
   };
 
   return (
-    <Card className="max-w-2xl bg-white shadow-xs border-slate-200">
+    <Card className="w-full bg-white shadow-xs border-slate-200 rounded-2xl">
       <CardHeader className="border-b border-slate-100 pb-4">
         <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
           <FolderPlus className="h-5 w-5 text-blue-600" />
@@ -118,14 +158,16 @@ export default function CategoryForm({
 
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-sm">
-              {error}
+          {/* General Error Banner */}
+          {errors.general && (
+            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-sm flex items-center gap-2 font-medium">
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+              <span>{errors.general}</span>
             </div>
           )}
 
           {/* Category Name */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="name" className="text-slate-700 font-medium">
               Category Name <span className="text-rose-500">*</span>
             </Label>
@@ -133,16 +175,24 @@ export default function CategoryForm({
               id="name"
               type="text"
               name="name"
-              required
-              value={formData.name}
+              value={formData.name ?? ""}
               onChange={handleInputChange}
               placeholder="e.g. Plumbing Services"
-              className="bg-white border-slate-200 focus-visible:ring-blue-500"
+              className={`bg-white transition-colors ${errors.name
+                  ? "border-rose-500 focus-visible:ring-rose-500"
+                  : "border-slate-200 focus-visible:ring-blue-500"
+                }`}
             />
+            {errors.name && (
+              <p className="text-xs text-rose-500 font-medium flex items-center gap-1 pt-0.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                {errors.name}
+              </p>
+            )}
           </div>
 
           {/* Slug */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="slug" className="text-slate-700 font-medium">
               Slug <span className="text-rose-500">*</span>
             </Label>
@@ -150,16 +200,24 @@ export default function CategoryForm({
               id="slug"
               type="text"
               name="slug"
-              required
-              value={formData.slug}
+              value={formData.slug ?? ""}
               onChange={handleInputChange}
               placeholder="e.g. plumbing-services"
-              className="bg-slate-50 border-slate-200 focus-visible:ring-blue-500 font-mono text-xs"
+              className={`bg-slate-50 font-mono text-xs transition-colors ${errors.slug
+                  ? "border-rose-500 focus-visible:ring-rose-500"
+                  : "border-slate-200 focus-visible:ring-blue-500"
+                }`}
             />
+            {errors.slug && (
+              <p className="text-xs text-rose-500 font-medium flex items-center gap-1 pt-0.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                {errors.slug}
+              </p>
+            )}
           </div>
 
           {/* Icon URL */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="icon" className="text-slate-700 font-medium">
               Icon URL
             </Label>
@@ -167,15 +225,24 @@ export default function CategoryForm({
               id="icon"
               type="text"
               name="icon"
-              value={formData.icon}
+              value={formData.icon ?? ""}
               onChange={handleInputChange}
               placeholder="https://example.com/icon.png"
-              className="bg-white border-slate-200 focus-visible:ring-blue-500"
+              className={`bg-white transition-colors ${errors.icon
+                  ? "border-rose-500 focus-visible:ring-rose-500"
+                  : "border-slate-200 focus-visible:ring-blue-500"
+                }`}
             />
+            {errors.icon && (
+              <p className="text-xs text-rose-500 font-medium flex items-center gap-1 pt-0.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                {errors.icon}
+              </p>
+            )}
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="description" className="text-slate-700 font-medium">
               Description
             </Label>
@@ -183,18 +250,27 @@ export default function CategoryForm({
               id="description"
               name="description"
               rows={3}
-              value={formData.description}
+              value={formData.description ?? ""}
               onChange={handleInputChange}
               placeholder="Describe this category..."
-              className="bg-white border-slate-200 focus-visible:ring-blue-500 resize-none"
+              className={`bg-white resize-none transition-colors ${errors.description
+                  ? "border-rose-500 focus-visible:ring-rose-500"
+                  : "border-slate-200 focus-visible:ring-blue-500"
+                }`}
             />
+            {errors.description && (
+              <p className="text-xs text-rose-500 font-medium flex items-center gap-1 pt-0.5">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                {errors.description}
+              </p>
+            )}
           </div>
 
           {/* Is Active Toggle */}
           <div className="flex items-center space-x-2 pt-2">
             <Checkbox
               id="isActive"
-              checked={formData.isActive}
+              checked={formData.isActive ?? true}
               onCheckedChange={handleCheckboxChange}
             />
             <Label
@@ -210,18 +286,19 @@ export default function CategoryForm({
             <Button
               type="button"
               variant="outline"
+              disabled={isPending}
               onClick={() => router.push(`${basePath}/categories`)}
-              className="gap-2 cursor-pointer"
+              className="gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer rounded-xl"
             >
               <ArrowLeft className="h-4 w-4" />
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer"
+              disabled={isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer rounded-xl shadow-xs"
             >
-              {loading ? (
+              {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Saving...

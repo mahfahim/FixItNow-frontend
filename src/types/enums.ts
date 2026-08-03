@@ -27,7 +27,10 @@ export enum PaymentStatus {
   REFUNDED = "REFUNDED",
 }
 
-export type PaymentProvider = "STRIPE" | "SSLCOMMERZ"
+export enum PaymentProvider {
+  STRIPE = "STRIPE",
+  SSLCOMMERZ = "SSLCOMMERZ",
+}
 
 export enum Weekday {
   MONDAY = "MONDAY",

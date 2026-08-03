@@ -1,3 +1,5 @@
+// src/app/(dashboardGroup)/admin/bookings/page.tsx
+
 import { Suspense } from "react";
 import { getAllBookingsAdmin } from "../_actions/admin.actions";
 import AdminBookingsTable from "../_components/AdminBookingsTable";
@@ -16,7 +18,7 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
     const response = await getAllBookingsAdmin({ page, limit });
 
     const bookings = response?.data || [];
-    const meta = response?.meta || { page: 1, limit: 10, total: 0 };
+    const meta = response?.meta || { page, limit, total: 0 };
 
     return (
         <div className="p-6 w-full">
@@ -30,7 +32,13 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading bookings table...</div>}>
+                <Suspense
+                    fallback={
+                        <div className="p-6 text-center text-gray-500">
+                            Loading bookings table...
+                        </div>
+                    }
+                >
                     <AdminBookingsTable bookings={bookings} meta={meta} />
                 </Suspense>
             </div>

@@ -1,5 +1,3 @@
-// src/app/(dashboardGroup)/technician/_actions/technician.action.ts
-
 'use server';
 
 import { cookies } from "next/headers";
@@ -131,8 +129,7 @@ export async function updateProfile(payload: IUpdateTechnicianProfilePayload) {
     const data = await res.json();
 
     if (data?.success) {
-      //  "page"-এর বদলে "max" দিন (অথবা শুধু revalidateTag("user-profile") লিখুন)
-      revalidateTag("user-profile", "max"); 
+      revalidateTag("user-profile","max");
       revalidatePath("/technician/profile", "page");
       revalidatePath("/technician/profile/edit", "page");
     }

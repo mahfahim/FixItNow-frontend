@@ -1,9 +1,8 @@
-// src/app/(dashboardGroup)/technician/services/edit/page.tsx
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServiceById } from "@/actions/services.actions";
 import { ServiceForm } from "../../_components/service-form";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Wrench } from "lucide-react";
 import { ICategory, IService } from "@/types";
 
 const BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
@@ -46,25 +45,32 @@ export default async function EditServicePage({ searchParams }: PageProps) {
     }
 
     return (
-        <div className="max-w-3xl mx-auto space-y-6">
-            {/* Navigation Header */}
-            <div className="flex items-center justify-between">
+        <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+            {/* Top Navigation Back Link */}
+            <div>
                 <Link
                     href="/technician/services"
-                    className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                    className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200/70 px-3 py-1.5 rounded-xl transition-all"
                 >
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-3.5 h-3.5" />
                     Back to Services
                 </Link>
             </div>
 
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Edit Service</h1>
-                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    Update your service details, price, duration or availability status.
-                </p>
+            {/* Page Header */}
+            <div className="flex items-center gap-3.5 border-b border-slate-200/80 pb-5">
+                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100/80">
+                    <Wrench className="w-6 h-6" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Edit Service</h1>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        Update your service details, pricing, estimated duration, or availability.
+                    </p>
+                </div>
             </div>
 
+            {/* Service Form Component */}
             <ServiceForm categories={categories} initialData={service} />
         </div>
     );

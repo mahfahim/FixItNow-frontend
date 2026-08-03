@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { setAvailability } from "../_actions/technician.action";
 import { Weekday, IAvailabilitySlot, IAvailabilitySlotPayload } from "@/types";
 import { useToast } from "@/providers/toast-provider";
-import { Loader2, Clock } from "lucide-react";
+import { Loader2, Clock, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AvailabilityFormProps {
@@ -26,7 +26,6 @@ export function AvailabilityForm({ initialData = [] }: AvailabilityFormProps) {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // Initialize state merging default values and initial data
     const [slots, setSlots] = useState<IAvailabilitySlotPayload[]>(() => {
         return WEEKDAYS.map((day) => {
             const existing = initialData.find((slot) => slot.weekday === day);
@@ -92,106 +91,124 @@ export function AvailabilityForm({ initialData = [] }: AvailabilityFormProps) {
     };
 
     return (
-        <Card className="bg-white rounded-2xl border border-slate-200/80 shadow-xs py-0">
+        <Card className="rounded-2xl border border-slate-200/80 bg-white shadow-xs">
             <form onSubmit={handleSubmit}>
                 <CardContent className="p-6 sm:p-8 space-y-6">
                     {errorMsg && (
                         <Alert
                             variant="destructive"
-                            className="bg-rose-50 border-rose-200 text-rose-700 text-xs rounded-xl"
+                            className="bg-red-50 border-red-200 text-red-700 text-xs rounded-xl"
                         >
                             <AlertDescription>{errorMsg}</AlertDescription>
                         </Alert>
                     )}
 
-                    <div className="space-y-4">
-                        {slots.map((slot) => (
-                            <div
-                                key={slot.weekday}
-                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-colors ${slot.isAvailable
-                                        ? "border-indigo-100 bg-indigo-50/30"
-                                        : "border-slate-100 bg-slate-50"
-                                    }`}
-                            >
-                                {/* Day & Toggle */}
-                                <div className="flex items-center gap-4 w-48">
-                                    <Switch
-                                        checked={slot.isAvailable}
-                                        onCheckedChange={() => handleToggle(slot.weekday)}
-                                    />
-                                    <span
-                                        className={`text-sm font-semibold capitalize ${slot.isAvailable ? "text-indigo-900" : "text-slate-400"
-                                            }`}
-                                    >
-                                        {slot.weekday.toLowerCase()}
-                                    </span>
-                                </div>
+                    <div className="space-y-3">
+                        {slots.map((slot) => {
+                            const dayName =
+                                slot.weekday.charAt(0) + slot.weekday.slice(1).toLowerCase();
 
-                                {/* Time Inputs */}
+                            return (
                                 <div
-                                    className={`flex items-center gap-3 transition-opacity ${slot.isAvailable
-                                            ? "opacity-100"
-                                            : "opacity-40 pointer-events-none"
+                                    key={slot.weekday}
+                                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-all duration-200 ${slot.isAvailable
+                                        ? "border-blue-200/80 bg-blue-50/40 shadow-2xs"
+                                        : "border-slate-200/60 bg-slate-50/60"
                                         }`}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-slate-400 hidden sm:block" />
-                                        <Input
-                                            type="time"
-                                            required={slot.isAvailable}
-                                            value={slot.startTime}
-                                            onChange={(e) =>
-                                                handleTimeChange(
-                                                    slot.weekday,
-                                                    "startTime",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-32 h-9 text-xs border-slate-200 bg-white rounded-lg focus:ring-indigo-500"
+                                    {/* Day Name & Switch */}
+                                    <div className="flex items-center gap-3.5 sm:w-48">
+                                        <Switch
+                                            checked={slot.isAvailable}
+                                            onCheckedChange={() => handleToggle(slot.weekday)}
+                                            className="data-unchecked:bg-slate-300! data-[state=unchecked]:bg-slate-300! data-checked:bg-blue-600! data-[state=checked]:bg-blue-600! transition-colors"
                                         />
+                                        <span
+                                            className={`text-sm font-semibold transition-colors ${slot.isAvailable ? "text-slate-900" : "text-slate-500"
+                                                }`}
+                                        >
+                                            {dayName}
+                                        </span>
                                     </div>
-                                    <span className="text-slate-400 text-sm font-medium">
-                                        to
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="time"
-                                            required={slot.isAvailable}
-                                            value={slot.endTime}
-                                            onChange={(e) =>
-                                                handleTimeChange(
-                                                    slot.weekday,
-                                                    "endTime",
-                                                    e.target.value
-                                                )
-                                            }
-                                            className="w-32 h-9 text-xs border-slate-200 bg-white rounded-lg focus:ring-indigo-500"
-                                        />
+
+                                    {/* Time Inputs */}
+                                    <div
+                                        className={`flex items-center gap-3 transition-opacity duration-200 ${slot.isAvailable
+                                            ? "opacity-100"
+                                            : "opacity-50 pointer-events-none"
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Clock
+                                                className={`w-4 h-4 ${slot.isAvailable ? "text-blue-600" : "text-slate-400"
+                                                    }`}
+                                            />
+                                            <Input
+                                                type="time"
+                                                disabled={!slot.isAvailable}
+                                                required={slot.isAvailable}
+                                                value={slot.startTime}
+                                                onChange={(e) =>
+                                                    handleTimeChange(
+                                                        slot.weekday,
+                                                        "startTime",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="w-32 h-10 text-xs sm:text-sm border-slate-200 bg-white rounded-xl font-medium text-slate-800 focus-visible:ring-2 focus-visible:ring-blue-600 shadow-2xs disabled:bg-slate-100 disabled:text-slate-400"
+                                            />
+                                        </div>
+
+                                        <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                                            to
+                                        </span>
+
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                type="time"
+                                                disabled={!slot.isAvailable}
+                                                required={slot.isAvailable}
+                                                value={slot.endTime}
+                                                onChange={(e) =>
+                                                    handleTimeChange(
+                                                        slot.weekday,
+                                                        "endTime",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="w-32 h-10 text-xs sm:text-sm border-slate-200 bg-white rounded-xl font-medium text-slate-800 focus-visible:ring-2 focus-visible:ring-blue-600 shadow-2xs disabled:bg-slate-100 disabled:text-slate-400"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => router.back()}
+                            className="rounded-xl text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-100 px-5 h-10 transition-colors"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="rounded-xl text-xs sm:text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white gap-2 px-6 h-10 shadow-xs transition-all"
+                        >
+                            {loading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                            )}
+                            Save Availability
+                        </Button>
                     </div>
                 </CardContent>
-
-                <CardFooter className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-slate-100">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => router.back()}
-                        className="text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-xl gap-2"
-                    >
-                        {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                        Save Availability
-                    </Button>
-                </CardFooter>
             </form>
         </Card>
     );

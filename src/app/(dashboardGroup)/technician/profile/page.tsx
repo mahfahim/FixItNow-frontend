@@ -101,7 +101,7 @@ export default async function TechnicianProfilePage() {
                                 <p className="text-xs text-slate-500">Years Exp.</p>
                             </div>
                             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                                <p className="text-xl font-bold text-slate-900 mt-1">৳{techProfile?.hourlyRate || 0}</p>
+                                <p className="text-xl font-bold text-slate-900 mt-1">${techProfile?.hourlyRate || 0}</p>
                                 <p className="text-xs text-slate-500">Hourly Rate</p>
                             </div>
                         </div>

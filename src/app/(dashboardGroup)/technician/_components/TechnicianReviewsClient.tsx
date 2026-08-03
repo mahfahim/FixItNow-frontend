@@ -49,36 +49,36 @@ export default function TechnicianReviewsClient({ technicianId }: TechnicianRevi
     }, [technicianId, error]);
 
     return (
-        <div className="p-6 max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6 pb-10">
             {/* Header Stats */}
             <ReviewStatsSummary averageRating={avgRating} totalReviews={totalReviews} />
 
             {/* Loading State */}
             {isPending && (
-                <div className="flex flex-col items-center justify-center py-16 space-y-3">
-                    <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                    <p className="text-xs text-slate-500 font-medium">Loading your reviews...</p>
+                <div className="flex flex-col items-center justify-center py-16 space-y-3 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+                    <Loader2 className="w-7 h-7 text-blue-600 animate-spin" />
+                    <p className="text-xs text-slate-500 font-medium">Loading customer reviews...</p>
                 </div>
             )}
 
             {/* Error State */}
             {!isPending && errorMsg && (
-                <Alert variant="destructive" className="rounded-2xl border-rose-200 bg-rose-50 text-rose-700">
+                <Alert variant="destructive" className="rounded-2xl border-red-200 bg-red-50 text-red-700">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle className="text-xs font-bold">Failed to load</AlertTitle>
+                    <AlertTitle className="text-xs font-bold">Failed to load reviews</AlertTitle>
                     <AlertDescription className="text-xs">{errorMsg}</AlertDescription>
                 </Alert>
             )}
 
             {/* Empty State */}
             {!isPending && !errorMsg && reviews.length === 0 && (
-                <Card className="border-dashed border-slate-200 bg-slate-50/50 rounded-3xl shadow-none">
+                <Card className="border-dashed border-slate-200/80 bg-white rounded-2xl shadow-xs">
                     <CardContent className="text-center py-16 space-y-3">
-                        <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
-                            <Star className="w-6 h-6" />
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl border border-blue-100 flex items-center justify-center mx-auto">
+                            <Star className="w-6 h-6 fill-blue-600 text-blue-600" />
                         </div>
-                        <h3 className="text-sm font-bold text-slate-800">No Feedback Yet</h3>
-                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        <h3 className="text-sm font-bold text-slate-900">No Feedback Yet</h3>
+                        <p className="text-xs text-slate-500 max-w-xs mx-auto">
                             Reviews from customers after completed jobs will appear here.
                         </p>
                     </CardContent>

@@ -5,7 +5,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createService, updateService } from "../_actions/services.actions";
 import { ICategory, IService } from "@/types";
-import { Loader2, Wrench, DollarSign, Clock, MapPin, Image as ImageIcon } from "lucide-react";
+import {
+    Loader2,
+    Wrench,
+    Banknote,
+    Clock,
+    MapPin,
+    Image as ImageIcon,
+    Tag,
+    FileText,
+    CheckCircle2,
+    Power,
+} from "lucide-react";
 import { useToast } from "@/providers/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,6 +116,7 @@ export function ServiceForm({
                 if (res?.success) {
                     success("Service Updated", res?.message || "Service updated successfully.");
                     router.push("/technician/services");
+                    router.refresh();
                 } else {
                     error("Update Failed", res?.message || "Failed to update service.");
                     setLoading(false);
@@ -126,6 +138,7 @@ export function ServiceForm({
                 if (res?.success) {
                     success("Service Created", res?.message || "Service created successfully.");
                     router.push("/technician/services");
+                    router.refresh();
                 } else {
                     error("Creation Failed", res?.message || "Failed to create service.");
                     setLoading(false);
@@ -139,143 +152,180 @@ export function ServiceForm({
     };
 
     return (
-        <Card className="rounded-2xl border-slate-200/80 shadow-xs">
+        <Card className="rounded-2xl border border-slate-200/80 bg-white shadow-xs">
             <CardContent className="p-6 sm:p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Title */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <Wrench className="w-3.5 h-3.5 text-indigo-600" /> Service Title *
-                            </Label>
-                            <Input
-                                type="text"
-                                name="title"
-                                required
-                                value={formData.title}
-                                onChange={handleChange}
-                                placeholder="e.g. AC Deep Cleaning & Gas Refill"
-                                className="rounded-xl border-slate-200 focus-visible:ring-indigo-500 text-xs sm:text-sm"
-                            />
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Section 1: Overview */}
+                    <div className="space-y-4">
+                        <div className="border-b border-slate-100 pb-2">
+                            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                1. General Details
+                            </h2>
                         </div>
 
-                        {/* Category */}
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-slate-700">Category *</Label>
-                            <Select
-                                value={formData.categoryId}
-                                onValueChange={(val: string | null) =>
-                                    setFormData((prev) => ({ ...prev, categoryId: val ?? "" }))
-                                }
-                            >
-                                <SelectTrigger className="w-full rounded-xl border-slate-200 text-xs sm:text-sm">
-                                    <SelectValue placeholder="Select Category" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    {categories.map((cat) => (
-                                        <SelectItem key={cat.id} value={cat.id} className="text-xs sm:text-sm">
-                                            {cat.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Price */}
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <DollarSign className="w-3.5 h-3.5 text-indigo-600" /> Price (৳) *
-                            </Label>
-                            <Input
-                                type="number"
-                                name="price"
-                                required
-                                min="1"
-                                value={formData.price}
-                                onChange={handleChange}
-                                placeholder="1500"
-                                className="rounded-xl border-slate-200 focus-visible:ring-indigo-500 text-xs sm:text-sm"
-                            />
-                        </div>
-
-                        {/* Duration */}
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-indigo-600" /> Estimated Duration (Minutes) *
-                            </Label>
-                            <Input
-                                type="number"
-                                name="duration"
-                                required
-                                min="15"
-                                step="15"
-                                value={formData.duration}
-                                onChange={handleChange}
-                                placeholder="60"
-                                className="rounded-xl border-slate-200 focus-visible:ring-indigo-500 text-xs sm:text-sm"
-                            />
-                        </div>
-
-                        {/* Service Areas */}
-                        <div className="space-y-2">
-                            <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <MapPin className="w-3.5 h-3.5 text-indigo-600" /> Service Areas (Comma separated)
-                            </Label>
-                            <Input
-                                type="text"
-                                name="serviceArea"
-                                value={formData.serviceArea}
-                                onChange={handleChange}
-                                placeholder="Dhanmondi, Gulshan, Uttara"
-                                className="rounded-xl border-slate-200 focus-visible:ring-indigo-500 text-xs sm:text-sm"
-                            />
-                        </div>
-
-                        {/* Images URLs */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <ImageIcon className="w-3.5 h-3.5 text-indigo-600" /> Image URLs (Comma or Newline separated)
-                            </Label>
-                            <Textarea
-                                name="images"
-                                rows={2}
-                                value={formData.images}
-                                onChange={handleChange}
-                                placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-                                className="rounded-xl border-slate-200 focus-visible:ring-indigo-500 text-xs sm:text-sm"
-                            />
-                        </div>
-
-                        {/* Description */}
-                        <div className="space-y-2 md:col-span-2">
-                            <Label className="text-xs font-semibold text-slate-700">Description *</Label>
-                            <Textarea
-                                name="description"
-                                required
-                                rows={4}
-                                value={formData.description}
-                                onChange={handleChange}
-                                placeholder="Describe what services are included in this package..."
-                                className="rounded-xl border-slate-200 focus-visible:ring-indigo-500 text-xs sm:text-sm"
-                            />
-                        </div>
-
-                        {/* Status Toggle */}
-                        {isEdit && (
-                            <div className="flex items-center gap-3 md:col-span-2 pt-2">
-                                <Switch
-                                    id="isAvailable"
-                                    checked={formData.isAvailable}
-                                    onCheckedChange={(checked) =>
-                                        setFormData((prev) => ({ ...prev, isAvailable: checked }))
-                                    }
-                                />
-                                <Label htmlFor="isAvailable" className="text-xs font-medium text-slate-700 cursor-pointer">
-                                    Service is available for customer booking
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {/* Title */}
+                            <div className="space-y-2 md:col-span-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <Wrench className="w-3.5 h-3.5 text-blue-600" />
+                                    Service Title <span className="text-red-500">*</span>
                                 </Label>
+                                <Input
+                                    type="text"
+                                    name="title"
+                                    required
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    placeholder="e.g. AC Deep Cleaning & Gas Refill"
+                                    className="rounded-xl border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600 h-10 text-xs sm:text-sm bg-white"
+                                />
                             </div>
-                        )}
+
+                            {/* Category */}
+                            <div className="space-y-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <Tag className="w-3.5 h-3.5 text-blue-600" />
+                                    Category <span className="text-red-500">*</span>
+                                </Label>
+                                <Select
+                                    value={formData.categoryId}
+                                    onValueChange={(val: string | null) =>
+                                        setFormData((prev) => ({ ...prev, categoryId: val ?? "" }))
+                                    }
+                                >
+                                    <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white text-slate-900 h-10 text-xs sm:text-sm focus:ring-2 focus:ring-blue-600">
+                                        <SelectValue placeholder="Select Category" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl bg-white border-slate-200">
+                                        {categories.map((cat) => (
+                                            <SelectItem key={cat.id} value={cat.id} className="text-xs sm:text-sm focus:bg-slate-100 text-slate-800">
+                                                {cat.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Price */}
+                            <div className="space-y-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <Banknote className="w-3.5 h-3.5 text-blue-600" />
+                                    Price (৳) <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    type="number"
+                                    name="price"
+                                    required
+                                    min="1"
+                                    value={formData.price}
+                                    onChange={handleChange}
+                                    placeholder="1500"
+                                    className="rounded-xl border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600 h-10 text-xs sm:text-sm bg-white"
+                                />
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Section 2: Pricing & Execution */}
+                    <div className="space-y-4">
+                        <div className="border-b border-slate-100 pb-2">
+                            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                2. Execution & Locations
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {/* Duration */}
+                            <div className="space-y-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                                    Estimated Duration (Minutes) <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    type="number"
+                                    name="duration"
+                                    required
+                                    min="15"
+                                    step="15"
+                                    value={formData.duration}
+                                    onChange={handleChange}
+                                    placeholder="60"
+                                    className="rounded-xl border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600 h-10 text-xs sm:text-sm bg-white"
+                                />
+                            </div>
+
+                            {/* Service Areas */}
+                            <div className="space-y-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                                    Service Areas (Comma separated)
+                                </Label>
+                                <Input
+                                    type="text"
+                                    name="serviceArea"
+                                    value={formData.serviceArea}
+                                    onChange={handleChange}
+                                    placeholder="Dhanmondi, Gulshan, Uttara"
+                                    className="rounded-xl border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600 h-10 text-xs sm:text-sm bg-white"
+                                />
+                            </div>
+
+                            {/* Image URLs */}
+                            <div className="space-y-2 md:col-span-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <ImageIcon className="w-3.5 h-3.5 text-blue-600" />
+                                    Image URLs (Comma or Newline separated)
+                                </Label>
+                                <Textarea
+                                    name="images"
+                                    rows={2}
+                                    value={formData.images}
+                                    onChange={handleChange}
+                                    placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+                                    className="rounded-xl border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600 text-xs sm:text-sm bg-white resize-none font-mono text-[13px]"
+                                />
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-2 md:col-span-2">
+                                <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                    Description <span className="text-red-500">*</span>
+                                </Label>
+                                <Textarea
+                                    name="description"
+                                    required
+                                    rows={4}
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    placeholder="Describe what services are included in this package..."
+                                    className="rounded-xl border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600 text-xs sm:text-sm bg-white resize-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 3: Availability Status */}
+                    {isEdit && (
+                        <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="isAvailable" className="text-xs font-semibold text-slate-800 flex items-center gap-2 cursor-pointer">
+                                    <Power className="w-3.5 h-3.5 text-blue-600" />
+                                    Service Availability
+                                </Label>
+                                <p className="text-[11px] text-slate-500">
+                                    Allow or pause new customer bookings for this service.
+                                </p>
+                            </div>
+                            <Switch
+                                id="isAvailable"
+                                checked={formData.isAvailable}
+                                onCheckedChange={(checked) =>
+                                    setFormData((prev) => ({ ...prev, isAvailable: checked }))
+                                }
+                            />
+                        </div>
+                    )}
 
                     {/* Buttons */}
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -283,16 +333,20 @@ export function ServiceForm({
                             type="button"
                             variant="ghost"
                             onClick={() => router.back()}
-                            className="rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100"
+                            className="rounded-xl text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-100 px-5 h-10 transition-colors"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white gap-2 px-6"
+                            className="rounded-xl text-xs sm:text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white gap-2 px-6 h-10 shadow-sm transition-all"
                         >
-                            {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            {loading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                            )}
                             {isEdit ? "Update Service" : "Publish Service"}
                         </Button>
                     </div>

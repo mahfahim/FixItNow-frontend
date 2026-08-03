@@ -1,4 +1,4 @@
-// src/act-schema/getMe.shema.ts
+// src/act-schema/getMe.schema.ts
 import { z } from "zod";
 
 /**
@@ -11,7 +11,12 @@ export const updateUserProfileSchema = z.object({
     .min(2, "Name must be at least 2 characters long")
     .max(50, "Name cannot exceed 50 characters")
     .optional(),
+  profileImage: z
+    .string()
+    .url("Must be a valid URL")
+    .optional(), // Added from backend
 });
 
 // Inferred TypeScript type from Zod Schema
 export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;
+

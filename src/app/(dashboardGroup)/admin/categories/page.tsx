@@ -1,46 +1,84 @@
 // src/app/(dashboardGroup)/admin/categories/page.tsx
+
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { Metadata } from "next";
+import {
+    dehydrate,
+    HydrationBoundary,
+    QueryClient,
+} from "@tanstack/react-query";
 import CategoryTable from "../_components/CategoryTable";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { ICategory } from "@/types";
 
-async function fetchCategories() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
+export const metadata: Metadata = {
+    title: "Categories | Admin Dashboard",
+    description: "Manage service categories for the platform.",
+};
 
-    const res = await fetch(`${process.env.BACKEND_API_URL}/api/admin/categories`, {
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        next: { tags: ["categories"] }
-    });
+async function fetchCategories(): Promise<ICategory[]> {
+    try {
+        const cookieStore = await cookies();
+        const token =
+            cookieStore.get("accessToken")?.value ||
+            cookieStore.get("token")?.value;
 
-    if (!res.ok) return { data: [] };
-    return res.json();
+        const apiUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
+
+        if (!apiUrl) {
+            console.error("Backend API URL is not defined in environment variables.");
+            return [];
+        }
+
+        const res = await fetch(`${apiUrl}/api/admin/categories`, {
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            cache: "no-store",
+        });
+
+        if (!res.ok) return [];
+
+        const response = await res.json();
+        return response?.data || [];
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        return [];
+    }
 }
 
 export default async function CategoriesPage() {
-    const response = await fetchCategories();
-    const categories = response?.data || [];
+    const queryClient = new QueryClient();
+
+    // Prefetch data on the server into the QueryCache
+    await queryClient.prefetchQuery({
+        queryKey: ["categories"],
+        queryFn: fetchCategories,
+    });
 
     return (
-        <div className="p-6 w-full">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Categories</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Manage service categories for the platform.
-                    </p>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <div className="p-6 w-full space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-800">Categories</h1>
+                        <p className="text-sm text-slate-500 mt-1">
+                            Manage service categories for the platform.
+                        </p>
+                    </div>
+                    <Link href="/admin/categories/create">
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer">
+                            <Plus className="h-4 w-4" />
+                            Add Category
+                        </Button>
+                    </Link>
                 </div>
-                <Link
-                    href="/admin/categories/create"
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-                >
-                    + Add Category
-                </Link>
-            </div>
 
-            <CategoryTable categories={categories} />
-        </div>
+                <CategoryTable />
+            </div>
+        </HydrationBoundary>
     );
 }

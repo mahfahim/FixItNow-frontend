@@ -1,5 +1,4 @@
 // src/actions/getMe.action.ts
-
 'use server';
 
 import { cookies } from "next/headers";
@@ -8,9 +7,6 @@ import { IUpdateUserProfile } from "@/types";
 
 const BASE_URL = process.env.BACKEND_API_URL as string;
 
-/**
- * Helper function to retrieve authorization headers using cookies
- */
 async function getAuthHeaders() {
   const cookieStore = await cookies();
   const token =
@@ -23,10 +19,6 @@ async function getAuthHeaders() {
   };
 }
 
-/**
- * Fetch current authenticated user's profile (Customer, Technician, or Admin)
- * Endpoint: GET /api/auth/me
- */
 export async function getMyProfile() {
   try {
     const headers = await getAuthHeaders();
@@ -51,13 +43,8 @@ export async function getMyProfile() {
   }
 }
 
-/**
- * Update current authenticated user's profile (Customer, Technician, or Admin)
- * Endpoint: PATCH /api/auth/me
- */
 export async function updateMyProfile(payload: IUpdateUserProfile) {
   try {
-
     const headers = await getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/auth/me`, {
       method: "PATCH",
@@ -68,7 +55,7 @@ export async function updateMyProfile(payload: IUpdateUserProfile) {
     const data = await res.json();
 
     if (data?.success) {
-      revalidateTag("user-profile", "max");
+      revalidateTag("user-profile","max");
     }
 
     return data;
