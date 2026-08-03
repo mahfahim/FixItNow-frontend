@@ -1,8 +1,8 @@
-// src/app/(dashboardGroup)/customer/dashboard/profile/page.tsx
 import Link from "next/link";
+import Image from "next/image";
 import { getMyProfile } from "@/actions/getMe.action";
 import { GetMeCustomer } from "../_components/getMe-customer";
-import { Edit3, User, Mail, Shield, AlertCircle } from "lucide-react";
+import { Edit3, User, Mail, Shield, AlertCircle, Image as ImageIcon, Activity } from "lucide-react";
 
 export const metadata = {
     title: "My Profile | FixItNow Customer",
@@ -24,6 +24,9 @@ export default async function CustomerProfilePage() {
         );
     }
 
+    // Backend Key Safety Check for Image
+    const avatarUrl = user?.profileImage || user?.image || user?.avatar || "";
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             {/* Header Bar */}
@@ -34,7 +37,6 @@ export default async function CustomerProfilePage() {
                         Overview of your personal customer profile details
                     </p>
                 </div>
-                {/* Updated Route Path */}
                 <Link
                     href="/customer/profile/edit"
                     className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm"
@@ -54,6 +56,29 @@ export default async function CustomerProfilePage() {
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Profile Image Field */}
+                    <div className="space-y-1 md:col-span-2">
+                        <label className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
+                            <ImageIcon className="h-3.5 w-3.5 text-slate-400" />
+                            Profile Image
+                        </label>
+                        <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            {avatarUrl ? (
+                                <Image
+                                    src={avatarUrl}
+                                    alt={user.name || "Profile Image"}
+                                    width={48}
+                                    height={48}
+                                    className="h-12 w-12 rounded-full object-cover border border-slate-200 shrink-0"
+                                />
+                            ) : (
+                                <div className="h-12 w-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg shrink-0">
+                                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="space-y-1">
                         <label className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
                             <User className="h-3.5 w-3.5 text-slate-400" />
@@ -86,7 +111,7 @@ export default async function CustomerProfilePage() {
 
                     <div className="space-y-1">
                         <label className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            <Activity className="h-3.5 w-3.5 text-slate-400" />
                             Account Status
                         </label>
                         <p className="text-sm font-semibold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-100">

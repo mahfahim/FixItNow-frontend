@@ -18,6 +18,9 @@ interface GetMeCustomerProps {
 export function GetMeCustomer({ user }: GetMeCustomerProps) {
     const { success } = useToast();
 
+    // Fallback image url resolve
+    const userImageUrl = user?.profileImage || (user as unknown as { image?: string })?.image || "";
+
     const formattedDate = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString("en-US", {
             month: "short",
@@ -48,7 +51,7 @@ export function GetMeCustomer({ user }: GetMeCustomerProps) {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 z-10 relative">
                     {/* User Avatar */}
                     <Avatar className="h-20 w-20 border-2 border-indigo-400/40 shadow-inner">
-                        <AvatarImage src={user?.profileImage as string} alt={user?.name || "Customer"} />
+                        <AvatarImage src={userImageUrl} alt={user?.name || "Customer"} />
                         <AvatarFallback className="bg-indigo-600/30 text-indigo-200 text-xl font-bold">
                             {initials}
                         </AvatarFallback>
@@ -69,7 +72,7 @@ export function GetMeCustomer({ user }: GetMeCustomerProps) {
                             </Badge>
                         </div>
 
-                        {/* Email with Copy Action */}
+                        {/* Email */}
                         <div className="flex items-center gap-2 text-sm text-slate-300 min-w-0">
                             <Mail className="h-4 w-4 text-slate-400 shrink-0" />
                             <span className="truncate">{user?.email}</span>

@@ -1,5 +1,3 @@
-// src/app/(dashboardGroup)/customer/profile/edit/page.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,11 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
     updateUserProfileSchema,
     UpdateUserProfileInput,
-} from "@/act-schema/getMe.shema";
+} from "@/act-schema/getMe.schema";
 import { getMyProfile, updateMyProfile } from "@/actions/getMe.action";
 import { GetMeCustomer } from "../../_components/getMe-customer";
 import { IUser } from "@/types";
-import { ArrowLeft, Save, Loader2, User, Mail, Lock } from "lucide-react";
+import { ArrowLeft, Save, Loader2, User, Mail, Lock, Image as ImageIcon } from "lucide-react";
 
 export default function EditCustomerProfilePage() {
     const router = useRouter();
@@ -27,7 +25,7 @@ export default function EditCustomerProfilePage() {
     const {
         register,
         handleSubmit,
-        setValue,
+        reset,
         formState: { errors },
     } = useForm<UpdateUserProfileInput>({
         resolver: zodResolver(updateUserProfileSchema),
@@ -38,9 +36,20 @@ export default function EditCustomerProfilePage() {
             try {
                 const res = await getMyProfile();
                 const profileData = res?.data || res?.result;
+
                 if (res?.success && profileData) {
                     setUser(profileData);
-                    setValue("name", profileData.name || "");
+
+                    const existingImg =
+                        profileData.profileImage ||
+                        (profileData as unknown as { image?: string })?.image ||
+                        (profileData as unknown as { avatar?: string })?.avatar ||
+                        "";
+
+                    reset({
+                        name: profileData.name || "",
+                        profileImage: existingImg,
+                    });
                 } else {
                     setServerError(res?.message || "Failed to load profile data.");
                 }
@@ -51,7 +60,7 @@ export default function EditCustomerProfilePage() {
             }
         }
         loadData();
-    }, [setValue]);
+    }, [reset]);
 
     const onSubmit = async (data: UpdateUserProfileInput) => {
         setSubmitting(true);
@@ -59,13 +68,21 @@ export default function EditCustomerProfilePage() {
         setSuccessMsg(null);
 
         try {
-            const res = await updateMyProfile(data);
+            const payload = {
+                name: data.name,
+                profileImage: data.profileImage,
+                image: data.profileImage,
+            };
+
+            const res = await updateMyProfile(payload);
+
             if (res?.success) {
                 setSuccessMsg("Profile updated successfully!");
                 router.refresh();
+
                 setTimeout(() => {
                     router.push("/customer/profile");
-                }, 1200);
+                }, 1000);
             } else {
                 setServerError(res?.message || "Failed to update profile.");
             }
@@ -78,7 +95,7 @@ export default function EditCustomerProfilePage() {
 
     if (loadingProfile) {
         return (
-            <div className="flex items-center justify-center min-h-100">
+            <div className="flex items-center justify-center min-h-75">
                 <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
             </div>
         );
@@ -140,6 +157,23 @@ export default function EditCustomerProfilePage() {
                             )}
                         </div>
 
+                        {/* Editable Field: Profile Image URL */}
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                <ImageIcon className="h-3.5 w-3.5 text-slate-400" />
+                                Profile Image URL
+                            </label>
+                            <input
+                                type="text"
+                                {...register("profileImage")}
+                                placeholder="https://example.com/avatar.jpg"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                            />
+                            {errors.profileImage && (
+                                <p className="text-xs text-red-500">{errors.profileImage.message}</p>
+                            )}
+                        </div>
+
                         {/* Read-Only Field: Email */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
@@ -178,7 +212,7 @@ export default function EditCustomerProfilePage() {
                     {/* Form Controls */}
                     <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                         <Link
-                            href="/customer/dashboard/profile"
+                            href="/customer/profile"
                             className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors"
                         >
                             Cancel
@@ -186,7 +220,7 @@ export default function EditCustomerProfilePage() {
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-6 py-2.5 rounded-xl transition-all shadow-sm disabled:opacity-50"
+                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-6 py-2.5 rounded-xl transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                         >
                             {submitting ? (
                                 <>

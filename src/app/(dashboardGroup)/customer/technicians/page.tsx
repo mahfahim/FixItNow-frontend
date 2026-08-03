@@ -1,28 +1,42 @@
-// src/app/(dashboardGroup)/customer/technicians/page.tsx
-
 import { getAllTechnicians } from "@/actions/technician.actions";
-import { TechnicianCustomerCard } from "../_components/technician-view-customer";
-import { Users, AlertCircle } from "lucide-react";
-import { ITechnician } from "@/types";
+import { TechniciansClientList } from "../_components/technicians-client-list";
+import { Users } from "lucide-react";
+import { ITechnicianFilterOptions, IPaginationOptions } from "@/types";
 
 interface PageProps {
     searchParams: Promise<{
+        search?: string;
         searchTerm?: string;
-        specialization?: string;
+        city?: string;
+        district?: string;
+        minRating?: string;
         page?: string;
         limit?: string;
+        sortBy?: string;
+        sortOrder?: "asc" | "desc";
     }>;
 }
 
 export default async function TechniciansPage({ searchParams }: PageProps) {
     const resolvedSearchParams = await searchParams;
-    const res = await getAllTechnicians(resolvedSearchParams);
 
-    const technicians: ITechnician[] =
-        res?.data || res?.result || (Array.isArray(res) ? res : []);
+    // Filters for Server Actions matching Backend DTO
+    const queryFilters: ITechnicianFilterOptions & IPaginationOptions = {
+        search: resolvedSearchParams.search || resolvedSearchParams.searchTerm,
+        city: resolvedSearchParams.city,
+        district: resolvedSearchParams.district,
+        minRating: resolvedSearchParams.minRating,
+        page: resolvedSearchParams.page ? Number(resolvedSearchParams.page) : 1,
+        limit: resolvedSearchParams.limit ? Number(resolvedSearchParams.limit) : 9,
+        sortBy: resolvedSearchParams.sortBy || "createdAt",
+        sortOrder: resolvedSearchParams.sortOrder || "desc",
+    };
+
+    // First Load Initial Fetching on Server Side
+    const initialData = await getAllTechnicians(queryFilters);
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 bg-slate-50 min-h-screen">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
@@ -36,35 +50,11 @@ export default async function TechniciansPage({ searchParams }: PageProps) {
                 </div>
             </div>
 
-            {/* Technicians Grid */}
-            {technicians.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {technicians.map((technician, index) => {
-
-                        const techKey =
-                            technician.id ||
-                            (technician as unknown as { _id?: string })._id ||
-                            `tech-${index}`;
-
-                        return (
-                            <TechnicianCustomerCard
-                                key={techKey}
-                                technician={technician}
-                            />
-                        );
-                    })}
-                </div>
-            ) : (
-                <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3 shadow-sm">
-                    <AlertCircle className="w-12 h-12 text-slate-400" />
-                    <h3 className="text-lg font-semibold text-slate-900">
-                        No Technicians Found
-                    </h3>
-                    <p className="text-sm text-slate-600 max-w-sm">
-                        We could not find any technicians matching your search criteria. Please try again later.
-                    </p>
-                </div>
-            )}
+            {/* TanStack Query Managed Technicians Component */}
+            <TechniciansClientList
+                initialData={initialData}
+                queryFilters={queryFilters}
+            />
         </div>
     );
 }

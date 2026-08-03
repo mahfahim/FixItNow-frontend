@@ -37,6 +37,24 @@ const fetchCategories = async (): Promise<ICategoryOption[]> => {
     return data?.data || data || [];
 };
 
+// ইউজার ফ্রেন্ডলি লেবেল ম্যাপ
+const SORT_LABELS: Record<string, string> = {
+    "createdAt-desc": "Newest First",
+    "createdAt-asc": "Oldest First",
+    "price-asc": "Price: Low to High",
+    "price-desc": "Price: High to Low",
+    "title-asc": "Title: A to Z",
+};
+
+const PRICE_LABELS: Record<string, string> = {
+    "all": "All Prices",
+    "0-500": "Under ৳500",
+    "500-1000": "৳500 - ৳1000",
+    "1000-3000": "৳1000 - ৳3000",
+    "3000-5000": "৳3000 - ৳5000",
+    "5000-": "Above ৳5000",
+};
+
 export function ServiceFilters({
     initialCategories = [],
 }: ServiceFiltersProps) {
@@ -101,7 +119,6 @@ export function ServiceFilters({
         info("Filters Reset", "All active filters have been cleared.");
     };
 
-    // 1. Accepts string | null to match Select component signature
     const handlePriceRangeChange = (value: string | null) => {
         if (!value || value === "all") {
             setMinPrice("");
@@ -115,6 +132,12 @@ export function ServiceFilters({
 
     const currentPriceRangeValue =
         minPrice || maxPrice ? `${minPrice}-${maxPrice}` : "all";
+
+    // ডিসপ্লে করার জন্য লেবেল নির্ধারণ
+    const selectedCategoryName =
+        categories.find((cat) => cat.id === category)?.name || "All Categories";
+    const selectedPriceLabel = PRICE_LABELS[currentPriceRangeValue] || "All Prices";
+    const selectedSortLabel = SORT_LABELS[sortOption] || "Newest First";
 
     const hasActiveFilters =
         Boolean(searchTerm) ||
@@ -158,12 +181,11 @@ export function ServiceFilters({
                     <div>
                         <Select
                             value={category || "all"}
-                            // 2. Safe fallback for null values
                             onValueChange={(val) => setCategory(!val || val === "all" ? "" : val)}
                             disabled={isCategoriesLoading}
                         >
                             <SelectTrigger className="w-full bg-slate-950 border-slate-800 text-slate-200 h-10 rounded-xl text-sm">
-                                <SelectValue placeholder="All Categories" />
+                                <SelectValue>{selectedCategoryName}</SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                                 <SelectItem value="all">All Categories</SelectItem>
@@ -190,7 +212,7 @@ export function ServiceFilters({
                             onValueChange={handlePriceRangeChange}
                         >
                             <SelectTrigger className="w-full bg-slate-950 border-slate-800 text-slate-200 h-10 rounded-xl text-sm">
-                                <SelectValue placeholder="All Prices" />
+                                <SelectValue>{selectedPriceLabel}</SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                                 <SelectItem value="all">All Prices</SelectItem>
@@ -207,11 +229,10 @@ export function ServiceFilters({
                     <div>
                         <Select
                             value={sortOption}
-                            // 3. Fallback null to default string value
                             onValueChange={(val) => setSortOption(val ?? "createdAt-desc")}
                         >
                             <SelectTrigger className="w-full bg-slate-950 border-slate-800 text-slate-200 h-10 rounded-xl text-sm">
-                                <SelectValue placeholder="Sort By" />
+                                <SelectValue>{selectedSortLabel}</SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                                 <SelectItem value="createdAt-desc">Newest First</SelectItem>

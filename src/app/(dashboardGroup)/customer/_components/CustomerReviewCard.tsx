@@ -1,8 +1,7 @@
-// src/app/(dashboardGroup)/customer/_components/CustomerReviewCard.tsx
 "use client";
 
 import React from "react";
-import { Star, Calendar, Wrench, Copy } from "lucide-react";
+import { Star, Calendar, Wrench, Copy, User } from "lucide-react";
 import { IReview } from "@/types";
 import { useToast } from "@/providers/toast-provider";
 
@@ -41,22 +40,24 @@ export default function CustomerReviewCard({ review }: CustomerReviewCardProps) 
     };
 
     return (
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-xs hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3 border-b border-slate-100 space-y-0">
+        <Card className="rounded-2xl border border-slate-200/80 bg-white shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
+            {/* Header */}
+            <CardHeader className="p-4 border-b border-slate-100 bg-white space-y-0">
                 <div className="flex items-start justify-between gap-3">
-                    <div>
-                        <div className="flex items-center gap-1.5 text-indigo-600 text-xs font-semibold">
-                            <Wrench className="w-3.5 h-3.5" />
-                            <span>{serviceTitle}</span>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-blue-600 text-xs font-semibold">
+                            <Wrench className="w-3.5 h-3.5 shrink-0" />
+                            <span className="line-clamp-1">{serviceTitle}</span>
                         </div>
-                        <CardTitle className="text-sm font-bold text-slate-900 mt-1">
-                            Technician: {technicianName}
+                        <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="line-clamp-1">{technicianName}</span>
                         </CardTitle>
                     </div>
 
                     <Badge
                         variant="outline"
-                        className="flex items-center gap-1 bg-amber-50 border-amber-200 text-amber-700 px-2.5 py-1 rounded-full text-xs font-bold"
+                        className="flex items-center gap-1 bg-amber-50/80 border-amber-200/80 text-amber-700 px-2.5 py-1 rounded-full text-xs font-bold shrink-0"
                     >
                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                         <span>{review.rating}.0</span>
@@ -64,31 +65,35 @@ export default function CustomerReviewCard({ review }: CustomerReviewCardProps) 
                 </div>
             </CardHeader>
 
-            <CardContent className="pt-4 space-y-3">
+            {/* Comment Section */}
+            <CardContent className="p-4 space-y-3 bg-white flex-1">
                 {review.comment ? (
-                    <div className="relative group bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-600 leading-relaxed pr-6">
-                            {review.comment}
+                    <div className="relative group bg-slate-50/80 p-3 rounded-xl border border-slate-100 min-h-17.5">
+                        <p className="text-xs text-slate-700 leading-relaxed pr-6">
+                            &quot;{review.comment}&quot;
                         </p>
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={handleCopyComment}
-                            className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-slate-600 rounded-md"
+                            className="absolute top-2 right-2 h-6 w-6 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-md transition-colors"
                             title="Copy review text"
                         >
                             <Copy className="w-3 h-3" />
                         </Button>
                     </div>
                 ) : (
-                    <p className="text-xs text-slate-400 italic">No written comment provided.</p>
+                    <p className="text-xs text-slate-400 italic py-2">No written comment provided.</p>
                 )}
             </CardContent>
 
-            <CardFooter className="pt-0 text-[11px] text-slate-400 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Reviewed on {formattedDate}</span>
+            {/* Clean & Light Footer */}
+            <CardFooter className="px-4 py-3 bg-slate-50/60 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 mt-auto rounded-b-2xl">
+                <div className="flex items-center gap-1.5 font-medium text-slate-500">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Reviewed on {formattedDate}</span>
+                </div>
             </CardFooter>
         </Card>
     );
