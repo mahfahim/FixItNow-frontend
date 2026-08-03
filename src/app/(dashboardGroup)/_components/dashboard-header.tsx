@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search, User as UserIcon, LogOut, User } from "lucide-react";
+import { Menu, Search, User as UserIcon, User } from "lucide-react";
 import { NotificationDropdown } from "./notification-dropdown";
 import { useToast } from "@/providers/toast-provider";
 import { Button } from "@/components/ui/button";
