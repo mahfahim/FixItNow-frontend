@@ -1,67 +1,68 @@
-// "use client";
 
-// import React, { createContext, useContext, useCallback } from "react";
-// import { Toaster, toast as baseToast } from "@/components/ui/toast";
+// src/providers/toast-provider.tsx
+"use client";
 
-// export type ToastType = "success" | "error" | "info" | "warning" | "loading";
+import React, { createContext, useContext, useCallback } from "react";
+import { Toaster, toast as baseToast } from "@/components/ui/toast";
 
-// interface ToastOptions {
-//     type?: ToastType;
-//     title: string;
-//     description?: string;
-// }
+export type ToastType = "success" | "error" | "info" | "warning" | "loading";
 
-// interface ToastContextType {
-//     toast: (options: ToastOptions) => void;
-//     success: (title: string, description?: string) => void;
-//     error: (title: string, description?: string) => void;
-//     info: (title: string, description?: string) => void;
-//     warning: (title: string, description?: string) => void;
-// }
+interface ToastOptions {
+  type?: ToastType;
+  title: string;
+  description?: string;
+}
 
-// const ToastContext = createContext<ToastContextType | undefined>(undefined);
+interface ToastContextType {
+  toast: (options: ToastOptions) => void;
+  success: (title: string, description?: string) => void;
+  error: (title: string, description?: string) => void;
+  info: (title: string, description?: string) => void;
+  warning: (title: string, description?: string) => void;
+}
 
-// export function ToastProvider({ children }: { children: React.ReactNode }) {
-//     const addToast = useCallback(({ type = "info", title, description }: ToastOptions) => {
-//         if (typeof baseToast?.add === "function") {
-//             baseToast.add({
-//                 title,
-//                 description,
-//                 type,
-//             });
-//         }
-//     // }, 
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-//     const success = useCallback(
-//         (title: string, description?: string) => addToast({ type: "success", title, description }),
-//         [addToast]
-//     );
-//     const error = useCallback(
-//         (title: string, description?: string) => addToast({ type: "error", title, description }),
-//         [addToast]
-//     );
-//     const info = useCallback(
-//         (title: string, description?: string) => addToast({ type: "info", title, description }),
-//         [addToast]
-//     );
-//     const warning = useCallback(
-//         (title: string, description?: string) => addToast({ type: "warning", title, description }),
-//         [addToast]
-//     );
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const addToast = useCallback(({ type = "info", title, description }: ToastOptions) => {
+    if (typeof baseToast?.add === "function") {
+      baseToast.add({
+        title,
+        description,
+        type,
+      });
+    }
+  }, []);
 
-//     return (
-//         <ToastContext.Provider value={{ toast: addToast, success, error, info, warning }}>
-//             {children}
-//             {/* Base UI Toaster Viewport & Portal */}
-//             <Toaster />
-//         </ToastContext.Provider>
-//     );
-// }
+  const success = useCallback(
+    (title: string, description?: string) => addToast({ type: "success", title, description }),
+    [addToast]
+  );
+  const error = useCallback(
+    (title: string, description?: string) => addToast({ type: "error", title, description }),
+    [addToast]
+  );
+  const info = useCallback(
+    (title: string, description?: string) => addToast({ type: "info", title, description }),
+    [addToast]
+  );
+  const warning = useCallback(
+    (title: string, description?: string) => addToast({ type: "warning", title, description }),
+    [addToast]
+  );
 
-// export function useToast() {
-//     const context = useContext(ToastContext);
-//     if (!context) {
-//         throw new Error("useToast must be used within a ToastProvider");
-//     }
-//     return context;
-// }
+  return (
+    <ToastContext.Provider value={{ toast: addToast, success, error, info, warning }}>
+      {children}
+      <Toaster />
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+  return context;
+}

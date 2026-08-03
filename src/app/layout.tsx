@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "@/app/globals.css";
+import { ToastProvider } from "@/providers/toast-provider";
 // import { AuthProvider } from "@/providers/auth-provider";
-// import { ToastProvider } from "@/providers/toast-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,17 +25,17 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {/* <AuthProvider> */}
-        {/* <ToastProvider> */}
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          }
-        >
-          {children}
-        </Suspense>
-        {/* </ToastProvider> */}
+        <ToastProvider>
+          <Suspense
+            fallback={
+              <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
+        </ToastProvider>
         {/* </AuthProvider> */}
       </body>
     </html>
