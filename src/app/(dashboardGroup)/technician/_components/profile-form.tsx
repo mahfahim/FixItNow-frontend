@@ -1,3 +1,4 @@
+//src/app/(dashboardGroup)/technician/_components/profile-form.tsx
 "use client";
 
 import { useState } from "react";
@@ -5,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { updateMyProfile } from "@/actions/getMe.action";
 import { ITechnician, IUser } from "@/types";
+import { useToast } from "@/providers/toast-provider";
 import {
     Loader2,
     Phone,
@@ -15,6 +17,18 @@ import {
     MapPin,
     Building2,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const DISTRICT_OPTIONS = [
     "Dhaka",
@@ -35,16 +49,25 @@ interface ProfileFormProps {
     initialTechData?: ITechnician | null;
 }
 
+interface ProfileFormData {
+    bio: string;
+    yearsOfExperience: number;
+    hourlyRate: number;
+    phone: string;
+    profileImage: string;
+    district: string;
+    city: string;
+    address: string;
+}
+
 export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) {
     const router = useRouter();
+    const { success, error } = useToast();
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // Initial state set from props. 
-    // Parent কম্পোনেন্টের key পরিবর্তনের কারণে ডেটা এলেই এটি সঠিকভাবে পপুলেট হবে।
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ProfileFormData>({
         bio: initialTechData?.bio || "",
-        yearsOfExperience: initialTechData?.yearsOfExperience || 0,
+        yearsOfExperience: Number(initialTechData?.yearsOfExperience) || 0,
         hourlyRate: Number(initialTechData?.hourlyRate) || 0,
         phone: initialTechData?.phone || "",
         profileImage: initialTechData?.profileImage || initialUser?.profileImage || "",
@@ -54,7 +77,7 @@ export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) 
     });
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const { name, value, type } = e.target;
         setFormData((prev) => ({
@@ -63,43 +86,53 @@ export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) 
         }));
     };
 
+    const handleSelectChange = (
+        name: keyof ProfileFormData,
+        value: string | null
+    ) => {
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value || "",
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setErrorMsg(null);
         setLoading(true);
 
         try {
             const res = await updateMyProfile(formData);
 
             if (!res?.success) {
-                setErrorMsg(res?.message || "Failed to update profile.");
+                error("Update Failed", res?.message || "Failed to update profile.");
                 return;
             }
 
+            success(
+                "Profile Updated",
+                res?.message || "Your profile has been updated successfully."
+            );
             router.push("/technician/profile");
             router.refresh();
         } catch (err) {
             console.error("Error updating profile:", err);
-            setErrorMsg("An unexpected error occurred. Please try again.");
+            error("Error", "An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
-            {errorMsg && (
-                <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
-                    {errorMsg}
-                </div>
-            )}
-
+        <form
+            onSubmit={handleSubmit}
+            className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-xs space-y-6"
+        >
             {/* Profile Image Section */}
             <div className="space-y-3 pb-4 border-b border-slate-100">
-                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-indigo-500" />
                     Profile Image URL
-                </label>
+                </Label>
                 <div className="flex items-center gap-4">
                     <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">
                         {formData.profileImage ? (
@@ -115,13 +148,13 @@ export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) 
                             <ImageIcon className="w-6 h-6 text-slate-400" />
                         )}
                     </div>
-                    <input
+                    <Input
                         type="url"
                         name="profileImage"
-                        value={formData.profileImage || ""}
+                        value={formData.profileImage}
                         onChange={handleChange}
                         placeholder="https://example.com/avatar.jpg"
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                        className="rounded-xl text-sm border-slate-200"
                     />
                 </div>
             </div>
@@ -129,65 +162,65 @@ export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Bio */}
                 <div className="md:col-span-2 space-y-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                         <AlignLeft className="w-4 h-4 text-slate-400" />
                         Professional Bio
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
                         name="bio"
                         rows={3}
-                        value={formData.bio || ""}
+                        value={formData.bio}
                         onChange={handleChange}
                         placeholder="Tell customers about your skills and experience..."
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                        className="rounded-xl text-sm border-slate-200"
                     />
                 </div>
 
                 {/* Experience */}
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                         <Briefcase className="w-4 h-4 text-slate-400" />
                         Years of Experience
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="number"
                         name="yearsOfExperience"
-                        value={formData.yearsOfExperience || 0}
+                        value={formData.yearsOfExperience}
                         onChange={handleChange}
                         min="0"
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                        className="rounded-xl text-sm border-slate-200"
                     />
                 </div>
 
                 {/* Hourly Rate */}
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-slate-400" />
                         Hourly Rate (৳)
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="number"
                         name="hourlyRate"
-                        value={formData.hourlyRate || 0}
+                        value={formData.hourlyRate}
                         onChange={handleChange}
                         min="0"
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                        className="rounded-xl text-sm border-slate-200"
                     />
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                         <Phone className="w-4 h-4 text-slate-400" />
                         Phone Number
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                         type="text"
                         name="phone"
-                        value={formData.phone || ""}
+                        value={formData.phone}
                         onChange={handleChange}
                         placeholder="+880..."
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                        className="rounded-xl text-sm border-slate-200"
                     />
                 </div>
             </div>
@@ -202,48 +235,52 @@ export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* District Dropdown */}
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-600">District</label>
-                        <select
-                            name="district"
-                            value={formData.district || ""}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900 bg-white"
+                        <Label className="text-xs font-medium text-slate-600">District</Label>
+                        <Select
+                            value={formData.district}
+                            onValueChange={(val) => handleSelectChange("district", val)}
                         >
-                            <option value="">Select District</option>
-                            {DISTRICT_OPTIONS.map((dist) => (
-                                <option key={dist} value={dist}>
-                                    {dist}
-                                </option>
-                            ))}
-                        </select>
+                            <SelectTrigger className="w-full rounded-xl text-sm border-slate-200 bg-white">
+                                <SelectValue placeholder="Select District" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                                {DISTRICT_OPTIONS.map((dist) => (
+                                    <SelectItem key={dist} value={dist}>
+                                        {dist}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* City / Area Input */}
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-slate-600">City / Area</label>
+                        <Label className="text-xs font-medium text-slate-600">City / Area</Label>
                         <div className="relative">
-                            <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                            <input
+                            <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-3 z-10" />
+                            <Input
                                 type="text"
                                 name="city"
-                                value={formData.city || ""}
+                                value={formData.city}
                                 onChange={handleChange}
                                 placeholder="e.g. Mirpur, Dhanmondi"
-                                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                                className="pl-9 rounded-xl text-sm border-slate-200"
                             />
                         </div>
                     </div>
 
                     {/* Street Address */}
                     <div className="space-y-2 md:col-span-2">
-                        <label className="text-xs font-medium text-slate-600">Full Address Line</label>
-                        <input
+                        <Label className="text-xs font-medium text-slate-600">
+                            Full Address Line
+                        </Label>
+                        <Input
                             type="text"
                             name="address"
-                            value={formData.address || ""}
+                            value={formData.address}
                             onChange={handleChange}
                             placeholder="House No, Road No, Area details..."
-                            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900"
+                            className="rounded-xl text-sm border-slate-200"
                         />
                     </div>
                 </div>
@@ -251,21 +288,22 @@ export function ProfileForm({ initialUser, initialTechData }: ProfileFormProps) 
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                <button
+                <Button
                     type="button"
+                    variant="outline"
                     onClick={() => router.back()}
-                    className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    className="rounded-xl text-sm text-slate-600 hover:bg-slate-100 border-slate-200"
                 >
                     Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm gap-2"
                 >
                     {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Save Profile Changes
-                </button>
+                </Button>
             </div>
         </form>
     );

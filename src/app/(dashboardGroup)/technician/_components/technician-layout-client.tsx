@@ -1,5 +1,4 @@
 // src/app/(dashboardGroup)/technician/_components/technician-layout-client.tsx
-
 "use client";
 
 import { useState } from "react";

@@ -1,3 +1,4 @@
+// src/app/(dashboardGroup)/technician/_components/TechnicianReviewsClient.tsx
 "use client";
 
 import React, { useEffect, useState, useTransition } from "react";
@@ -5,18 +6,21 @@ import { getTechnicianReviews } from "@/actions/review.actions";
 import ReviewStatsSummary from "../_components/ReviewStatsSummary";
 import TechnicianReviewCard from "../_components/TechnicianReviewCard";
 import { IReview } from "@/types";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Star, AlertCircle } from "lucide-react";
+import { useToast } from "@/providers/toast-provider";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface TechnicianReviewsClientProps {
     technicianId: string;
 }
 
 export default function TechnicianReviewsClient({ technicianId }: TechnicianReviewsClientProps) {
+    const { error } = useToast();
     const [reviews, setReviews] = useState<IReview[]>([]);
     const [isPending, startTransition] = useTransition();
     const [apiError, setApiError] = useState<string>("");
 
-    // technicianId না থাকলে Derived State ব্যবহার করা হয়েছে যাতে cascading render error না হয়
     const errorMsg = !technicianId ? "Technician ID is required to fetch reviews." : apiError;
 
     const totalReviews = reviews.length;
@@ -26,7 +30,10 @@ export default function TechnicianReviewsClient({ technicianId }: TechnicianRevi
             : 0;
 
     useEffect(() => {
-        if (!technicianId) return;
+        if (!technicianId) {
+            error("Missing Information", "Technician ID is required to fetch reviews.");
+            return;
+        }
 
         startTransition(async () => {
             const res = await getTechnicianReviews(technicianId);
@@ -34,10 +41,12 @@ export default function TechnicianReviewsClient({ technicianId }: TechnicianRevi
                 setReviews(res.data);
                 setApiError("");
             } else {
-                setApiError(res.error || "Failed to fetch reviews.");
+                const errMsg = res.error || "Failed to fetch reviews.";
+                setApiError(errMsg);
+                error("Fetch Error", errMsg);
             }
         });
-    }, [technicianId]);
+    }, [technicianId, error]);
 
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -54,22 +63,26 @@ export default function TechnicianReviewsClient({ technicianId }: TechnicianRevi
 
             {/* Error State */}
             {!isPending && errorMsg && (
-                <div className="p-4 bg-rose-50 border border-rose-200 text-rose-600 text-xs rounded-2xl">
-                    {errorMsg}
-                </div>
+                <Alert variant="destructive" className="rounded-2xl border-rose-200 bg-rose-50 text-rose-700">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="text-xs font-bold">Failed to load</AlertTitle>
+                    <AlertDescription className="text-xs">{errorMsg}</AlertDescription>
+                </Alert>
             )}
 
             {/* Empty State */}
             {!isPending && !errorMsg && reviews.length === 0 && (
-                <div className="text-center py-16 border border-dashed border-slate-200 rounded-3xl bg-slate-50/50 space-y-3">
-                    <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
-                        <Star className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-800">No Feedback Yet</h3>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                        Reviews from customers after completed jobs will appear here.
-                    </p>
-                </div>
+                <Card className="border-dashed border-slate-200 bg-slate-50/50 rounded-3xl shadow-none">
+                    <CardContent className="text-center py-16 space-y-3">
+                        <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+                            <Star className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-800">No Feedback Yet</h3>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                            Reviews from customers after completed jobs will appear here.
+                        </p>
+                    </CardContent>
+                </Card>
             )}
 
             {/* Reviews List */}
