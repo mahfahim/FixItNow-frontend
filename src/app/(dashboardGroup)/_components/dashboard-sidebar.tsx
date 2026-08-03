@@ -6,12 +6,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/actions/auth.actions";
+import { useToast } from "@/providers/toast-provider";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-    LayoutDashboard,
     Calendar,
     Wrench,
     Users,
-    Settings,
     LogOut,
     X,
     Shield,
@@ -20,6 +21,8 @@ import {
     User,
     Home,
     Loader2,
+    FolderPlus,
+    Clock,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,6 +37,7 @@ export function DashboardSidebar({
     userRole = "CUSTOMER",
 }: SidebarProps) {
     const pathname = usePathname();
+    const { success, error } = useToast();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const rolePrefix = userRole.toLowerCase();
@@ -43,38 +47,33 @@ export function DashboardSidebar({
         try {
             setIsLoggingOut(true);
             await logout();
+            success("Logged out successfully", "You have been redirected to login.");
             window.location.href = "/login";
         } catch (err: unknown) {
             console.error("Failed to logout:", err);
+            error("Logout Failed", "Something went wrong while signing out.");
             setIsLoggingOut(false);
         }
     };
 
     const getNavItems = () => {
-        const common = [
-            { label: "Overview", href: basePath, icon: LayoutDashboard },
-            { label: "Settings", href: `${basePath}/settings`, icon: Settings },
-        ];
-
         if (userRole === "ADMIN") {
             return [
                 { label: "Admin Home", href: basePath, icon: Shield },
                 { label: "Manage Users", href: `${basePath}/users`, icon: Users },
                 { label: "All Bookings", href: `${basePath}/bookings`, icon: Calendar },
-                { label: "Category Creation", href: `${basePath}/categories`, icon: Calendar },
-
+                { label: "Category Creation", href: `${basePath}/categories`, icon: FolderPlus },
             ];
         }
 
         if (userRole === "TECHNICIAN") {
             return [
                 { label: "Technician Home", href: basePath, icon: Wrench },
-                { label: "Profile", href: `${basePath}/profile`, icon: Calendar },
+                { label: "Profile", href: `${basePath}/profile`, icon: User },
                 { label: "Bookings", href: `${basePath}/bookings`, icon: Calendar },
-                { label: "My Services", href: `${basePath}/services`, icon: Star },
-                { label: "Availability", href: `${basePath}/availability`, icon: Star },
+                { label: "My Services", href: `${basePath}/services`, icon: Wrench },
+                { label: "Availability", href: `${basePath}/availability`, icon: Clock },
                 { label: "Reviews", href: `${basePath}/reviews`, icon: Star },
-
             ];
         }
 
@@ -117,12 +116,16 @@ export function DashboardSidebar({
                                 FixIt<span className="text-blue-500">Now</span>
                             </span>
                         </Link>
-                        <button
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={onClose}
-                            className="lg:hidden text-slate-400 hover:text-white p-1 rounded-md transition-colors"
+                            className="lg:hidden text-slate-400 hover:text-white hover:bg-slate-800"
+                            aria-label="Close Sidebar"
                         >
                             <X className="h-5 w-5" />
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Current Role Badge */}
@@ -130,9 +133,12 @@ export function DashboardSidebar({
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                             Role:
                         </span>
-                        <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase tracking-wide">
+                        <Badge
+                            variant="outline"
+                            className="bg-blue-500/20 text-blue-400 border-blue-500/30 font-semibold uppercase text-[11px] tracking-wide"
+                        >
                             {userRole}
-                        </span>
+                        </Badge>
                     </div>
 
                     {/* Nav Items */}
@@ -147,8 +153,8 @@ export function DashboardSidebar({
                                     href={item.href}
                                     onClick={onClose}
                                     className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                                        ? "bg-blue-600 text-white font-semibold shadow-xs"
-                                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                                            ? "bg-blue-600 text-white font-semibold shadow-xs"
+                                            : "text-slate-300 hover:bg-slate-800 hover:text-white"
                                         }`}
                                 >
                                     <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-slate-400"}`} />
@@ -161,23 +167,25 @@ export function DashboardSidebar({
 
                 {/* Footer / Sign Out Button */}
                 <div className="p-4 border-t border-slate-800 shrink-0">
-                    <button
+                    <Button
+                        type="button"
+                        variant="ghost"
                         onClick={handleLogout}
                         disabled={isLoggingOut}
-                        className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors disabled:opacity-50 cursor-pointer"
+                        className="w-full flex items-center justify-start gap-3 px-3.5 py-2.5 text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                         {isLoggingOut ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin text-rose-400" />
-                                Signing Out...
+                                <span>Signing Out...</span>
                             </>
                         ) : (
                             <>
                                 <LogOut className="h-4 w-4" />
-                                Sign Out
+                                <span>Sign Out</span>
                             </>
                         )}
-                    </button>
+                    </Button>
                 </div>
             </aside>
         </>
