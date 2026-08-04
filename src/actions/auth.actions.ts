@@ -1,109 +1,79 @@
 // src/actions/auth.actions.ts
-'use server';
+"use server";
 
-import { cookies } from "next/headers";
-import { IRegisterUser, ILoginUser } from "@/types";
+import { apiClient } from "@/lib/api-client";
+import { executeAction } from "@/lib/request-wrapper";
+import { setAuthCookies, clearAuthCookies } from "@/lib/auth-cookies";
+import { API_ROUTES } from "@/lib/constants";
+import type { ActionResponse } from "@/types/api.types";
+import type { IRegisterUser, ILoginUser } from "@/types";
 
-
-const BASE_URL = process.env.BACKEND_API_URL as string ;
-
-
-export async function register(payload: IRegisterUser) {
-  try {
-    const res = await fetch(`${BASE_URL}/api/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-    });
-
-    const data = await res.json();
-    return data;
-  } catch (error: unknown) {
-    console.error("Error in register action:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error ? error.message : "User registration failed",
-    };
-  }
+interface AuthTokens {
+  accessToken?: string;
+  refreshToken?: string;
 }
 
-
-
-
-
-export async function login(payload: ILoginUser) {
-  try {
-    const res = await fetch(`${BASE_URL}/api/auth/login`, {
+/**
+ * Registers a new user.
+ * Endpoint: POST /api/auth/register
+ */
+export async function register(
+  payload: IRegisterUser
+): Promise<ActionResponse<unknown>> {
+  return executeAction(
+    () => apiClient.post(API_ROUTES.AUTH.REGISTER, payload, { cache: "no-store" }),
+    {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-    });
-
-    const data = await res.json();
-
-    if (data?.success && data?.data) {
-      const { accessToken, refreshToken } = data.data;
-      const cookieStore = await cookies();
-
-      // Store accessToken in secure HTTP-only cookie
-      if (accessToken) {
-        cookieStore.set("accessToken", accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 7 * 24 * 60 * 60, // 7 days
-        });
-      }
-
-      // Store refreshToken in secure HTTP-only cookie
-      if (refreshToken) {
-        cookieStore.set("refreshToken", refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 30 * 24 * 60 * 60, // 30 days
-        });
-      }
+      endpoint: API_ROUTES.AUTH.REGISTER,
+      fallbackMessage: "User registration failed",
     }
-
-    return data;
-  } catch (error: unknown) {
-    console.error("Error in login action:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error ? error.message : "User login failed",
-    };
-  }
+  );
 }
 
+/**
+ * Logs a user in and, on success, persists the returned access/refresh
+ * tokens into HttpOnly cookies.
+ * Endpoint: POST /api/auth/login
+ */
+export async function login(
+  payload: ILoginUser
+): Promise<ActionResponse<AuthTokens>> {
+  return executeAction(
+    async () => {
+      const response = await apiClient.post<AuthTokens>(
+        API_ROUTES.AUTH.LOGIN,
+        payload,
+        { cache: "no-store" }
+      );
 
+      if (response.success && response.data) {
+        await setAuthCookies(response.data);
+      }
 
+      return response;
+    },
+    {
+      method: "POST",
+      endpoint: API_ROUTES.AUTH.LOGIN,
+      fallbackMessage: "User login failed",
+    }
+  );
+}
 
-export async function logout() {
-  try {
-    const cookieStore = await cookies();
-    cookieStore.delete("accessToken");
-    cookieStore.delete("refreshToken");
-
-    return {
-      success: true,
-      message: "Logged out successfully",
-    };
-  } catch (error: unknown) {
-    console.error("Error in logout action:", error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : "Logout failed",
-    };
-  }
+/**
+ * Logs the current user out by clearing auth cookies. No backend call is
+ * made, matching the original behavior.
+ */
+export async function logout(): Promise<ActionResponse<undefined>> {
+  return executeAction(
+    async () => {
+      await clearAuthCookies();
+      return { success: true, message: "Logged out successfully" };
+    },
+    {
+      method: "POST",
+      endpoint: "logout (client-side cookie clear)",
+      fallbackMessage: "Logout failed",
+    }
+  );
 }

@@ -1,70 +1,68 @@
 // src/actions/getMe.action.ts
 'use server';
 
-import { cookies } from "next/headers";
 import { revalidateTag } from "next/cache";
-import { IUpdateUserProfile } from "@/types";
+import { apiClient } from "@/lib/api-client";
+import { executeAction } from "@/lib/request-wrapper";
+import { getAuthHeaders } from "@/lib/getAuthHeaders";
+import { CACHE_TAGS } from "@/lib/constants";
+import type { ActionResponse } from "@/types/api.types";
+import type { IUpdateUserProfile } from "@/types";
 
-const BASE_URL = process.env.BACKEND_API_URL as string;
+/* ==========================================================================
+   USER PROFILE ACTIONS
+   ========================================================================== */
 
-async function getAuthHeaders() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get("accessToken")?.value ||
-    cookieStore.get("token")?.value;
+/**
+ * Fetch current authenticated user's profile.
+ * Endpoint: GET /api/auth/me
+ */
+export async function getMyProfile(): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/auth/me";
 
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-export async function getMyProfile() {
-  try {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${BASE_URL}/api/auth/me`, {
+  return executeAction(
+    async () => {
+      const headers = await getAuthHeaders();
+      return apiClient.get(endpoint, {
+        headers,
+        cache: "no-store",
+        next: {
+          tags: [CACHE_TAGS.USER_PROFILE],
+        },
+      });
+    },
+    {
       method: "GET",
-      headers,
-      cache: "no-store",
-      next: {
-        tags: ["user-profile"],
-      },
-    });
-
-    const data = await res.json();
-    return data;
-  } catch (error: unknown) {
-    console.error("Error in getMyProfile:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to fetch user profile",
-    };
-  }
+      endpoint,
+      fallbackMessage: "Failed to fetch user profile",
+    }
+  );
 }
 
-export async function updateMyProfile(payload: IUpdateUserProfile) {
-  try {
-    const headers = await getAuthHeaders();
-    const res = await fetch(`${BASE_URL}/api/auth/me`, {
+/**
+ * Update current authenticated user's profile.
+ * Endpoint: PATCH /api/auth/me
+ */
+export async function updateMyProfile(
+  payload: IUpdateUserProfile
+): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/auth/me";
+
+  return executeAction(
+    async () => {
+      const headers = await getAuthHeaders();
+      const response = await apiClient.patch(endpoint, payload, { headers });
+
+      if (response.success) {
+        revalidateTag(CACHE_TAGS.USER_PROFILE, "max");
+      }
+
+      return response;
+    },
+    {
       method: "PATCH",
-      headers,
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (data?.success) {
-      revalidateTag("user-profile","max");
+      endpoint,
+      fallbackMessage: "Failed to update user profile",
     }
-
-    return data;
-  } catch (error: unknown) {
-    console.error("Error in updateMyProfile:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to update user profile",
-    };
-  }
+  );
 }

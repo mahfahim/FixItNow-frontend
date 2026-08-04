@@ -1,157 +1,182 @@
 // src/actions/review.actions.ts
-
 "use server";
 
-import {
+import { revalidatePath, revalidateTag } from "next/cache";
+import { apiClient } from "@/lib/api-client";
+import { executeAction } from "@/lib/request-wrapper";
+import { getAuthHeaders } from "@/lib/getAuthHeaders";
+import { buildQueryString } from "@/lib/query-string";
+import { CACHE_REVALIDATE_SECONDS } from "@/lib/constants";
+import type { ActionResponse } from "@/types/api.types";
+import type {
   IReview,
   IReviewFilterOptions,
   IPaginationOptions,
+  ICreateReviewPayload,
 } from "@/types";
 
-const API_URL =
-  process.env.BACKEND_API_URL as string;
-
-export interface ActionResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
-  error?: string;
-}
+/* ==========================================================================
+   HELPERS
+   ========================================================================== */
 
 /**
- * Fetch all reviews with optional filtering and pagination
+ * Retrieves authorization headers, accepting an optional override token.
+ */
+async function getAuthHeader(explicitToken?: string): Promise<Record<string, string>> {
+  if (explicitToken) {
+    const formattedToken = explicitToken.startsWith("Bearer ")
+      ? explicitToken
+      : `Bearer ${explicitToken}`;
+    return { Authorization: formattedToken };
+  }
+  return await getAuthHeaders();
+}
+
+/* ==========================================================================
+   READ OPERATIONS (PUBLIC & COMMON)
+   ========================================================================== */
+
+/**
+ * Fetch all reviews with optional filtering and pagination.
  * Endpoint: GET /api/review
  */
 export async function getAllReviews(
   options: IReviewFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<IReview[]>> {
-  try {
-    const queryParams = new URLSearchParams();
+  const endpoint = `/api/review${buildQueryString(options)}`;
 
-    Object.entries(options).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        queryParams.append(key, String(value));
-      }
-    });
-
-    const queryString = queryParams.toString();
-    const url = `${API_URL}/api/review${queryString ? `?${queryString}` : ""}`;
-
-    const res = await fetch(url, {
+  return executeAction(
+    () =>
+      apiClient.get<IReview[]>(endpoint, {
+        next: {
+          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          tags: ["reviews"],
+        },
+      }),
+    {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "FixItNow-Frontend/1.0",
-      },
-      next: {
-        revalidate: 60,
-        tags: ["reviews"],
-      },
-    });
-
-    const result = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      throw new Error(result.message || "Failed to fetch reviews");
+      endpoint,
+      fallbackMessage: "Failed to fetch reviews",
     }
-
-    return {
-      success: true,
-      message: result.message || "Reviews fetched successfully",
-      data: result.data || [],
-    };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Error fetching reviews.";
-    console.error("getAllReviews error:", message);
-    return { success: false, error: message, data: [] };
-  }
+  );
 }
 
 /**
- * Fetch all reviews for a specific technician
+ * Fetch all reviews for a specific technician.
  * Endpoint: GET /api/review/technician/:technicianId
  */
 export async function getTechnicianReviews(
   technicianId: string
 ): Promise<ActionResponse<IReview[]>> {
-  try {
-    const res = await fetch(`${API_URL}/api/review/technician/${technicianId}`, {
+  const endpoint = `/api/review/technician/${technicianId}`;
+
+  return executeAction(
+    () =>
+      apiClient.get<IReview[]>(endpoint, {
+        next: {
+          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          tags: [`technician-reviews-${technicianId}`, "reviews"],
+        },
+      }),
+    {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "FixItNow-Frontend/1.0",
-      },
-      next: {
-        revalidate: 60,
-        tags: [`technician-reviews-${technicianId}`, "reviews"],
-      },
-    });
-
-    const result = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      throw new Error(
-        result.message || "Failed to fetch technician reviews"
-      );
+      endpoint,
+      fallbackMessage: "Failed to fetch technician reviews",
     }
-
-    return {
-      success: true,
-      message: result.message || "Technician reviews fetched successfully",
-      data: result.data || [],
-    };
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Error fetching technician reviews.";
-    console.error("getTechnicianReviews error:", message);
-    return { success: false, error: message, data: [] };
-  }
+  );
 }
 
 /**
- * Fetch a review associated with a specific booking ID
+ * Fetch a review associated with a specific booking ID.
  * Endpoint: GET /api/review/booking/:bookingId
  */
 export async function getReviewByBookingId(
   bookingId: string,
   token?: string
 ): Promise<ActionResponse<IReview | null>> {
-  try {
-    const res = await fetch(`${API_URL}/api/review/booking/${bookingId}`, {
+  const endpoint = `/api/review/booking/${bookingId}`;
+
+  return executeAction(
+    async () => {
+      const headers = await getAuthHeader(token);
+      return apiClient.get<IReview | null>(endpoint, {
+        headers,
+        next: {
+          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          tags: [`booking-review-${bookingId}`],
+        },
+      });
+    },
+    {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "FixItNow-Frontend/1.0",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      next: {
-        revalidate: 30,
-        tags: [`booking-review-${bookingId}`],
-      },
-    });
-
-    const result = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      throw new Error(
-        result.message || "Failed to fetch review for this booking"
-      );
+      endpoint,
+      fallbackMessage: "Failed to fetch review for this booking",
     }
+  );
+}
 
-    return {
-      success: true,
-      message: result.message || "Booking review fetched successfully",
-      data: result.data || null,
-    };
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Error fetching booking review.";
-    console.error("getReviewByBookingId error:", message);
-    return { success: false, error: message, data: null };
-  }
+/**
+ * Get all reviews submitted by the authenticated logged-in customer.
+ * Endpoint: GET /api/review/my-reviews
+ */
+export async function getCustomerReviews(
+  token?: string
+): Promise<ActionResponse<IReview[]>> {
+  const endpoint = "/api/review/my-reviews";
+
+  return executeAction(
+    async () => {
+      const headers = await getAuthHeader(token);
+      return apiClient.get<IReview[]>(endpoint, {
+        headers,
+        next: {
+          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          tags: ["customer-reviews"],
+        },
+      });
+    },
+    {
+      method: "GET",
+      endpoint,
+      fallbackMessage: "Failed to fetch customer reviews",
+    }
+  );
+}
+
+/* ==========================================================================
+   MUTATION OPERATIONS (AUTHENTICATED)
+   ========================================================================== */
+
+/**
+ * Submit a new review for a completed booking.
+ * Endpoint: POST /api/review
+ */
+export async function createReview(
+  reviewData: ICreateReviewPayload,
+  token?: string
+): Promise<ActionResponse<IReview>> {
+  const endpoint = "/api/review";
+
+  return executeAction(
+    async () => {
+      const headers = await getAuthHeader(token);
+      const response = await apiClient.post<IReview>(endpoint, reviewData, { headers });
+
+      if (response.success) {
+        revalidateTag("customer-reviews", "max");
+        revalidateTag("customer-bookings", "max");
+        revalidateTag("technicians", "max");
+        revalidateTag("reviews", "max");
+        revalidatePath("/customer/reviews", "page");
+        revalidatePath("/customer/dashboard", "page");
+      }
+
+      return response;
+    },
+    {
+      method: "POST",
+      endpoint,
+      fallbackMessage: "Failed to submit review",
+    }
+  );
 }
