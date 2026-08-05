@@ -1,6 +1,4 @@
-//src/types/index.ts
 export * from "./enums";
-
 
 export * from "./auth.types";
 export * from "./category.types";
@@ -21,8 +19,6 @@ import {
   NotificationType,
 } from "./enums";
 
-
-
 export interface IUser {
   id: string;
   name: string;
@@ -35,7 +31,6 @@ export interface IUser {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   technicianProfile?: ITechnician | null;
   addresses?: IAddress[];
   bookingsAsCustomer?: IBooking[];
@@ -62,7 +57,6 @@ export interface ITechnician {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   user: IUser;
   services?: IService[];
   bookingsAsTechnician?: IBooking[];
@@ -81,7 +75,6 @@ export interface ICategory {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   services?: IService[];
 }
 
@@ -100,7 +93,6 @@ export interface IService {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   technician?: ITechnician;
   category?: ICategory;
   bookings?: IBooking[];
@@ -118,7 +110,6 @@ export interface IAddress {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   user?: IUser;
   bookings?: IBooking[];
 }
@@ -140,7 +131,6 @@ export interface IBooking {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   customer?: IUser;
   technician?: ITechnician;
   service?: IService;
@@ -156,7 +146,6 @@ export interface IBookingStatusHistory {
   status: BookingStatus;
   note?: string | null;
   createdAt?: string | Date;
-
 
   booking?: IBooking;
 }
@@ -174,7 +163,6 @@ export interface IPayment {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   booking?: IBooking;
 }
 
@@ -187,7 +175,6 @@ export interface IReview {
   comment?: string | null;
   createdAt?: string | Date;
 
-  
   booking?: IBooking;
   customer?: IUser;
   technician?: ITechnician;
@@ -203,7 +190,6 @@ export interface IAvailabilitySlot {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 
-  
   technician?: ITechnician;
 }
 
@@ -217,7 +203,6 @@ export interface INotification {
   metadata?: Record<string, unknown> | null;
   createdAt?: string | Date;
 
-  
   user?: IUser;
 }
 
@@ -227,7 +212,25 @@ export interface IFavoriteTechnician {
   technicianId: string;
   createdAt?: string | Date;
 
-  
   customer?: IUser;
   technician?: ITechnician;
+}
+
+export interface IPaginatedMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPage?: number;
+}
+
+export interface ActionResponse<T = unknown> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
+  meta?: IPaginatedMeta;
+}
+
+export interface PaginatedActionResponse<T = unknown> extends ActionResponse<T[]> {
+  bookings?: T[];
 }

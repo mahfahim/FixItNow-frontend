@@ -1,6 +1,6 @@
-// src/app/(dashboardGroup)/customer/page.tsx
 import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
+import { ActionResponse, IUser } from "@/types";
 import {
     User,
     ArrowRight,
@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 
 export default async function CustomerDashboardPage() {
-    const profileRes = await getMyProfile();
-    const user = profileRes?.data || profileRes?.result;
+    const profileRes = (await getMyProfile()) as ActionResponse<IUser>;
+    const user = profileRes?.data;
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">

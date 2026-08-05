@@ -6,7 +6,8 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import { API_ROUTES, CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/constants";
+import { API_ROUTES, CACHE_TAGS } from "@/lib/constants";
+import { getCacheConfig, BaseCacheOptions } from "@/lib/cache-utils";
 import type { ActionResponse } from "@/types/api.types";
 import type {
   ICategoryFilterOptions,
@@ -15,27 +16,34 @@ import type {
   IUpdateCategoryPayload,
 } from "@/types";
 
+export interface GetCategoriesOptions
+  extends BaseCacheOptions,
+    ICategoryFilterOptions,
+    IPaginationOptions {}
+
 /* ==========================================================================
    READ OPERATIONS (PUBLIC)
    ========================================================================== */
 
 /**
- * Fetch all categories with optional search, filter, and pagination options.
+ * Fetch all categories with optional search, filter, pagination, and cache options.
  * Endpoint: GET /api/categories
  */
 export async function getAllCategories(
-  options: ICategoryFilterOptions & IPaginationOptions = {}
+  options: GetCategoriesOptions = {}
 ): Promise<ActionResponse<unknown>> {
-  const endpoint = `${API_ROUTES.CATEGORIES.BASE}${buildQueryString(options)}`;
+  const { useCache = true, cache, revalidateSeconds, tags, ...filterOptions } = options;
+  const endpoint = `${API_ROUTES.CATEGORIES.BASE}${buildQueryString(filterOptions)}`;
+
+  const fetchConfig = getCacheConfig({
+    useCache,
+    cache,
+    revalidateSeconds,
+    tags: [CACHE_TAGS.CATEGORIES, ...(tags || [])],
+  });
 
   return executeAction(
-    () =>
-      apiClient.get(endpoint, {
-        next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: [CACHE_TAGS.CATEGORIES],
-        },
-      }),
+    () => apiClient.get(endpoint, fetchConfig),
     {
       method: "GET",
       endpoint,
@@ -45,20 +53,25 @@ export async function getAllCategories(
 }
 
 /**
- * Fetch a single category by its ID.
+ * Fetch a single category by its ID with cache configuration options.
  * Endpoint: GET /api/categories/:id
  */
-export async function getCategoryById(id: string): Promise<ActionResponse<unknown>> {
+export async function getCategoryById(
+  id: string,
+  options: BaseCacheOptions = {}
+): Promise<ActionResponse<unknown>> {
+  const { useCache = true, cache, revalidateSeconds, tags } = options;
   const endpoint = API_ROUTES.CATEGORIES.BY_ID(id);
 
+  const fetchConfig = getCacheConfig({
+    useCache,
+    cache,
+    revalidateSeconds,
+    tags: [CACHE_TAGS.CATEGORY(id), ...(tags || [])],
+  });
+
   return executeAction(
-    () =>
-      apiClient.get(endpoint, {
-        next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: [CACHE_TAGS.CATEGORY(id)],
-        },
-      }),
+    () => apiClient.get(endpoint, fetchConfig),
     {
       method: "GET",
       endpoint,

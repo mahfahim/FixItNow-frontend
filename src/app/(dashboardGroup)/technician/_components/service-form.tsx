@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createService, updateService } from "../_actions/services.actions";
+import { createService, updateService } from "@/actions/services.actions";
 import { ICategory, IService } from "@/types";
 import {
     Loader2,

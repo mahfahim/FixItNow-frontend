@@ -1,8 +1,8 @@
 // src/app/(dashboardGroup)/technician/bookings/page.tsx
 
 import Link from "next/link";
-import { getTechnicianBookings } from "../_actions/booking.actions";
-import { IBooking, BookingStatus } from "@/types";
+import { getTechnicianBookings } from "@/actions/booking.actions";
+import { IBooking, BookingStatus, ActionResponse } from "@/types";
 import { StatusBadge } from "../_components/booking-status-badge";
 import { BookingActionsClient } from "../_components/booking-actions-client";
 import { Calendar, Clock, MapPin, Eye, Search, Filter } from "lucide-react";
@@ -21,27 +21,22 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
     const searchTerm = resolvedSearchParams.searchTerm || "";
     const page = Number(resolvedSearchParams.page) || 1;
 
-    const response = await getTechnicianBookings(
+    const response = (await getTechnicianBookings(
         { status: statusFilter, searchTerm },
         { page, limit: 10 }
-    );
-
+    )) as ActionResponse<IBooking[]>;
 
     console.log("Technician Bookings API Response:", JSON.stringify(response, null, 2));
 
     const rawData = response?.data;
 
-
-
     const bookings: IBooking[] = Array.isArray(rawData)
         ? rawData
-        : Array.isArray(rawData?.data) // 👈 ব্যাকএন্ডের response.data.data চেক করা হচ্ছে
-            ? rawData.data
-            : Array.isArray(response?.result)
-                ? response.result
-                : [];
+        : Array.isArray((rawData as unknown as { data?: IBooking[] })?.data)
+            ? (rawData as unknown as { data: IBooking[] }).data
+            : [];
 
-    const meta = rawData?.meta || response?.meta || { total: bookings.length, totalPage: 1 };
+    const meta = response?.meta || { total: bookings.length, totalPage: 1 };
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">
@@ -107,7 +102,6 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
             ) : (
                 <div className="grid grid-cols-1 gap-4">
                     {bookings.map((booking) => {
-
                         const bookingId = booking.id || (booking as unknown as { _id: string })._id;
 
                         return (

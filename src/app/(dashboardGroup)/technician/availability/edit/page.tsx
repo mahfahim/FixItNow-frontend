@@ -1,16 +1,15 @@
-// src/app/(dashboardGroup)/technician/availability/edit/page.tsx
-
 import Link from "next/link";
-import { getAvailability } from "../../_actions/technician.action";
+import { getAvailability } from "@/actions/technician.actions";
 import { AvailabilityForm } from "../../_components/availability-form";
+import { ActionResponse, IAvailabilitySlot } from "@/types";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function EditAvailabilityPage() {
-    const res = await getAvailability();
-    const availabilitySlots = res?.data || res?.result || [];
+    const res = (await getAvailability()) as ActionResponse<IAvailabilitySlot[]>;
+    const availabilitySlots = res?.data || [];
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-10">

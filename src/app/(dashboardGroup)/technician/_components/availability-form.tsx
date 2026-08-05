@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setAvailability } from "../_actions/technician.action";
+import { setAvailability } from "@/actions/technician.actions";
 import { Weekday, IAvailabilitySlot, IAvailabilitySlotPayload } from "@/types";
 import { useToast } from "@/providers/toast-provider";
 import { Loader2, Clock, CheckCircle2 } from "lucide-react";

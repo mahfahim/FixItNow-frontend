@@ -9,7 +9,7 @@
    NETWORK
    ========================================================================== */
 
-export const API_TIMEOUT_MS = 10_000;
+export const API_TIMEOUT_MS = 20_000;
 
 export const DEFAULT_HEADERS: Readonly<Record<string, string>> = {
   "Content-Type": "application/json",
@@ -25,9 +25,6 @@ export const CACHE_REVALIDATE_SECONDS = {
 
 /* ==========================================================================
    CACHE TAGS
-   Central registry of every `next.tags` value used for fetch caching and
-   `revalidateTag`. Keeping these as functions/constants avoids typos across
-   read and mutation actions.
    ========================================================================== */
 
 export const CACHE_TAGS = {
@@ -56,8 +53,6 @@ export const REVALIDATE_PATHS = {
 
 /* ==========================================================================
    API ROUTES
-   All backend endpoint paths in one place. Existing URLs are preserved
-   exactly as they were in the original implementation.
    ========================================================================== */
 
 export const API_ROUTES = {
@@ -97,11 +92,6 @@ export const COOKIE_MAX_AGE_SECONDS = {
    ENV
    ========================================================================== */
 
-/**
- * Resolves and validates the backend base URL once, at module load time,
- * instead of re-reading `process.env` (and re-risking `undefined`) in every
- * action file.
- */
 export function getBackendBaseUrl(): string {
   const url = process.env.BACKEND_API_URL;
   if (!url) {

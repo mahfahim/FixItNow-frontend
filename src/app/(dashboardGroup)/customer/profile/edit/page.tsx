@@ -1,3 +1,5 @@
+// src/app/(dashboardGroup)/customer/profile/edit/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,7 +13,7 @@ import {
 } from "@/act-schema/getMe.schema";
 import { getMyProfile, updateMyProfile } from "@/actions/getMe.action";
 import { GetMeCustomer } from "../../_components/getMe-customer";
-import { IUser } from "@/types";
+import { IUser, ActionResponse } from "@/types";
 import { ArrowLeft, Save, Loader2, User, Mail, Lock, Image as ImageIcon } from "lucide-react";
 
 export default function EditCustomerProfilePage() {
@@ -34,8 +36,8 @@ export default function EditCustomerProfilePage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const res = await getMyProfile();
-                const profileData = res?.data || res?.result;
+                const res = (await getMyProfile()) as ActionResponse<IUser>;
+                const profileData = res?.data;
 
                 if (res?.success && profileData) {
                     setUser(profileData);
@@ -43,7 +45,6 @@ export default function EditCustomerProfilePage() {
                     const existingImg =
                         profileData.profileImage ||
                         (profileData as unknown as { image?: string })?.image ||
-                        (profileData as unknown as { avatar?: string })?.avatar ||
                         "";
 
                     reset({
@@ -74,7 +75,7 @@ export default function EditCustomerProfilePage() {
                 image: data.profileImage,
             };
 
-            const res = await updateMyProfile(payload);
+            const res = (await updateMyProfile(payload)) as ActionResponse<IUser>;
 
             if (res?.success) {
                 setSuccessMsg("Profile updated successfully!");

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServiceById } from "@/actions/services.actions";
+import { ActionResponse, IService } from "@/types";
 import {
     ArrowLeft,
     Clock,
@@ -19,11 +20,19 @@ interface SingleServicePageProps {
     }>;
 }
 
+// Extend IService to safely cover backend variations (like loose rating or image properties)
+type DetailedService = IService & {
+    rating?: number | string;
+    imageUrl?: string;
+    image?: string;
+    img?: string;
+};
+
 export default async function SingleServicePage({ params }: SingleServicePageProps) {
     const resolvedParams = await params;
     const serviceId = resolvedParams["service-id"];
 
-    const res = await getServiceById(serviceId);
+    const res = (await getServiceById(serviceId)) as ActionResponse<DetailedService>;
 
     if (!res?.success || !res?.data) {
         notFound();
@@ -31,13 +40,13 @@ export default async function SingleServicePage({ params }: SingleServicePagePro
 
     const service = res.data;
 
-    // Category Name Fix
+    // Category Name Resolution
     const categoryName =
         typeof service.category === "object"
             ? service.category?.name
             : service.category || "General";
 
-    // 🔴 Image URL Resolution Fix (অ্যারে এবং অবজেক্ট উভয় চেক করা হচ্ছে)
+    // Image URL Resolution
     const serviceImageUrl =
         (Array.isArray(service.images) && service.images.length > 0 ? service.images[0] : null) ||
         service.imageUrl ||
@@ -87,7 +96,7 @@ export default async function SingleServicePage({ params }: SingleServicePagePro
                     </div>
 
                     <div className="space-y-4">
-                        {/* Main Title - Dark Color Fixed */}
+                        {/* Main Title */}
                         <h1 className="text-3xl font-extrabold text-slate-900">
                             {service.title}
                         </h1>

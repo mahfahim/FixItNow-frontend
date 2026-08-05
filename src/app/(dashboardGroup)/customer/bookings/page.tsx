@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getCustomerBookings } from "../_actions/booking.actions";
+import { getCustomerBookings } from "@/actions/booking.actions";
 import { BookingCustomerView } from "../_components/booking-customer";
 import { CalendarCheck, AlertCircle, Loader2 } from "lucide-react";
 import { BookingStatus } from "@/types";

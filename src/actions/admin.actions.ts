@@ -13,7 +13,15 @@ import type {
   IUpdateUserStatusPayload,
   IPaginationOptions,
   ICreateCategoryPayload,
+  BookingStatus,
+  PaymentStatus,
 } from "@/types";
+
+export interface IBookingAdminFilterOptions extends IPaginationOptions {
+  search?: string;
+  status?: BookingStatus | string;
+  paymentStatus?: PaymentStatus | string;
+}
 
 /* ==========================================================================
    USER MANAGEMENT (ADMIN)
@@ -87,13 +95,15 @@ export async function updateUserStatus(
    ========================================================================== */
 
 /**
- * Fetch all bookings across the platform for admin.
+ * Fetch all bookings across the platform for admin with search & filters.
  * Endpoint: GET /api/admin/bookings
  */
+
 export async function getAllBookingsAdmin(
-  options: IPaginationOptions = {}
+  options: IBookingAdminFilterOptions = {}
 ): Promise<ActionResponse<unknown>> {
-  const endpoint = `/api/admin/bookings${buildQueryString(options)}`;
+  const queryOptions: Record<string, unknown> = { ...options };
+  const endpoint = `/api/admin/bookings${buildQueryString(queryOptions)}`;
 
   return executeAction(
     async () => {

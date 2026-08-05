@@ -1,9 +1,8 @@
 // src/lib/query-string.ts
 
 /**
- * Serializes a flat options object into a URL query string, skipping
- * `undefined`, `null`, and empty-string values. Shared by every list/filter
- * Server Action to avoid re-implementing this per file.
+ * Serializes a flat options object into a URL query string, handling arrays
+ * and skipping `undefined`, `null`, and empty-string values.
  */
 export function buildQueryString(
   options: Record<string, unknown> = {}
@@ -12,7 +11,11 @@ export function buildQueryString(
 
   for (const [key, value] of Object.entries(options)) {
     if (value !== undefined && value !== null && value !== "") {
-      params.append(key, String(value));
+      if (Array.isArray(value)) {
+        value.forEach((item) => params.append(key, String(item)));
+      } else {
+        params.append(key, String(value));
+      }
     }
   }
 

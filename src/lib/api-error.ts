@@ -1,13 +1,5 @@
 // src/lib/api-error.ts
 
-/**
- * Error classification for the API layer.
- *
- * Every failure — network, timeout, or HTTP — is normalized into an
- * `ApiError` with a known `ApiErrorType`, so Server Actions can convert it
- * into a safe, consistent `ActionResponse` without leaking internals.
- */
-
 export enum ApiErrorType {
   NETWORK = "NETWORK",
   TIMEOUT = "TIMEOUT",
@@ -46,9 +38,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Maps an HTTP status code to a known `ApiErrorType`.
- */
 export function classifyHttpStatus(status: number): ApiErrorType {
   switch (status) {
     case 401:
@@ -68,10 +57,6 @@ export function classifyHttpStatus(status: number): ApiErrorType {
   }
 }
 
-/**
- * Attempts to extract a human-readable message from a parsed backend
- * response body, falling back to `undefined` if none is present.
- */
 export function extractBackendMessage(body: unknown): string | undefined {
   if (
     body &&
@@ -84,20 +69,12 @@ export function extractBackendMessage(body: unknown): string | undefined {
   return undefined;
 }
 
-/**
- * Builds an `ApiError` from a non-OK HTTP response.
- */
 export function createHttpApiError(status: number, body: unknown): ApiError {
   const type = classifyHttpStatus(status);
   const message = extractBackendMessage(body) ?? DEFAULT_ERROR_MESSAGES[type];
   return new ApiError(type, message, status);
 }
 
-/**
- * Normalizes an unknown thrown value (fetch/network/abort failures, or an
- * already-classified `ApiError`) into an `ApiError`, without ever exposing
- * raw internal error details to the caller.
- */
 export function toApiError(error: unknown): ApiError {
   if (error instanceof ApiError) {
     return error;
@@ -108,7 +85,6 @@ export function toApiError(error: unknown): ApiError {
   }
 
   if (error instanceof TypeError) {
-    // fetch throws a TypeError for network-level failures (DNS, offline, CORS, etc.)
     return new ApiError(ApiErrorType.NETWORK, DEFAULT_ERROR_MESSAGES[ApiErrorType.NETWORK]);
   }
 

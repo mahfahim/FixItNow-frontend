@@ -1,16 +1,16 @@
 // src/app/(dashboardGroup)/technician/availability/page.tsx
 
 import Link from "next/link";
-import { getAvailability } from "../_actions/technician.action";
-import { Weekday, IAvailabilitySlot } from "@/types";
+import { getAvailability } from "@/actions/technician.actions";
 import { Edit, Clock, CalendarX2 } from "lucide-react";
+import { ActionResponse, IAvailabilitySlot, Weekday } from "@/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function AvailabilityViewPage() {
-    const res = await getAvailability();
-    const availabilitySlots: IAvailabilitySlot[] = res?.data || res?.result || [];
+    const res = (await getAvailability()) as ActionResponse<IAvailabilitySlot[]>;
+    const availabilitySlots: IAvailabilitySlot[] = res?.data || [];
 
     const WEEKDAYS = Object.values(Weekday);
 

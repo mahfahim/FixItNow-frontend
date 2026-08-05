@@ -8,7 +8,7 @@ import {
     declineBookingRequest,
     startBookingJob,
     completeBookingJob,
-} from "../_actions/booking.actions";
+} from "@/actions/booking.actions";
 import { useToast } from "@/providers/toast-provider";
 import { CheckCircle2, XCircle, Play, CheckCheck, Loader2 } from "lucide-react";
 

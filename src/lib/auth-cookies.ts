@@ -17,11 +17,6 @@ function baseCookieOptions() {
   };
 }
 
-/**
- * Persists the access/refresh tokens returned by the backend into
- * HttpOnly cookies. Behavior (names, flags, max-age) is unchanged from the
- * original implementation.
- */
 export async function setAuthCookies({ accessToken, refreshToken }: TokenPair): Promise<void> {
   const cookieStore = await cookies();
 
@@ -40,9 +35,6 @@ export async function setAuthCookies({ accessToken, refreshToken }: TokenPair): 
   }
 }
 
-/**
- * Clears both auth cookies. Used by `logout`.
- */
 export async function clearAuthCookies(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAMES.ACCESS_TOKEN);

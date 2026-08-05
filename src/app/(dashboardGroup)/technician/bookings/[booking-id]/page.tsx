@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTechnicianBookingById } from "../../_actions/booking.actions";
+import { getTechnicianBookingById } from "@/actions/booking.actions";
 import { IBooking } from "@/types";
 import { StatusBadge } from "../../_components/booking-status-badge";
 import { BookingActionsClient } from "../../_components/booking-actions-client";
@@ -28,7 +28,7 @@ export default async function BookingDetailPage({ params }: PageProps) {
     const bookingId = resolvedParams["booking-id"];
 
     const res = await getTechnicianBookingById(bookingId);
-    const booking: IBooking | null = res?.data || res?.result || null;
+    const booking: IBooking | null = res?.data || null;
 
     if (!booking) {
         notFound();

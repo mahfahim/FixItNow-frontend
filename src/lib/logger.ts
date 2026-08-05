@@ -1,15 +1,5 @@
 // src/lib/logger.ts
 
-/**
- * Minimal structured logger for the Server Action layer.
- *
- * - Never logs tokens, cookies, passwords, authorization headers, or raw
- *   request/response payloads.
- * - Emits a single structured line per event, easy to pipe into a log
- *   aggregator (Datadog, CloudWatch, etc.) later without changing call sites.
- * - No-ops for debug-level logs in production; errors always log.
- */
-
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 export interface HttpLogContext {
@@ -79,7 +69,6 @@ export const logger = {
   error: (message: string, context?: Record<string, unknown>): void =>
     write("error", message, context),
 
-  /** Convenience helper for the common "HTTP request failed" shape. */
   httpError: (context: HttpLogContext): void =>
     write("error", "HTTP request failed", { ...context }),
 };

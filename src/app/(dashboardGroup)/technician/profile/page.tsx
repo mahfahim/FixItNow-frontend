@@ -2,13 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { getMyProfile } from "@/actions/getMe.action";
 import { Edit, Star, Briefcase, MapPin, Phone, Mail, CheckCircle } from "lucide-react";
-import { IUser, ITechnician } from "@/types";
+import { IUser, ITechnician, ActionResponse } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function TechnicianProfilePage() {
-    const profileRes = await getMyProfile();
-    const user: IUser = profileRes?.data || profileRes?.result;
+    const profileRes = (await getMyProfile()) as ActionResponse<IUser>;
+    const user = profileRes?.data;
     const techProfile: ITechnician | null | undefined = user?.technicianProfile;
 
     const displayImage = techProfile?.profileImage || user?.profileImage;

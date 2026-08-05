@@ -27,7 +27,7 @@ export default function AdminDashboardLayout({ children }: DashboardLayoutProps)
         const fetchUserProfile = async () => {
             try {
                 const res = await getMyProfile();
-                const profileData = res?.data || res?.result;
+                const profileData = res?.data || res?.data;
                 if (res?.success && profileData) {
                     setUser(profileData);
                 }

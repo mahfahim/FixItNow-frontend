@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { deleteService } from "../_actions/services.actions";
+import { deleteService } from "@/actions/services.actions";
 import { Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/providers/toast-provider";
 import { Button } from "@/components/ui/button";

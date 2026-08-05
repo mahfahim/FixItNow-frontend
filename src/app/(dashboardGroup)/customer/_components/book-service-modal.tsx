@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { createBooking } from "../_actions/booking.actions";
+import { createBooking } from "@/actions/booking.actions";
 import { createPaymentIntent } from "@/app/(payment)/_actions/payment.actions";
 import { PaymentProvider } from "@/types/enums";
 import { useToast } from "@/providers/toast-provider";

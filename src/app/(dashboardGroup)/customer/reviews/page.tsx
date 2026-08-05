@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useTransition } from "react";
-import { getCustomerReviews } from "../_actions/review.actions";
+import { getCustomerReviews } from "@/actions/review.actions";
 import CustomerReviewCard from "../_components/CustomerReviewCard";
-import { IReview } from "@/types";
+import { ActionResponse, IReview } from "@/types";
 import { Star, Loader2, MessageSquare, AlertCircle } from "lucide-react";
 
 export default function CustomerReviewsPage() {
@@ -13,11 +13,11 @@ export default function CustomerReviewsPage() {
 
     useEffect(() => {
         startTransition(async () => {
-            const res = await getCustomerReviews();
+            const res = (await getCustomerReviews()) as ActionResponse<IReview[]>;
             if (res.success && res.data) {
                 setReviews(res.data);
             } else {
-                setErrorMsg(res.error || "Failed to load reviews.");
+                setErrorMsg(res.message || res.error || "Failed to load reviews.");
             }
         });
     }, []);

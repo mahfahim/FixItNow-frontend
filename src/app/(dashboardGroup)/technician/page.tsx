@@ -1,7 +1,8 @@
-// src/app/(dashboardGroup)/technician/page.tsx 
+// src/app/(dashboardGroup)/technician/page.tsx
 
 import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
+import { IUser, ActionResponse } from "@/types";
 import {
     User,
     ArrowRight,
@@ -11,8 +12,8 @@ import {
 } from "lucide-react";
 
 export default async function TechnicianDashboardPage() {
-    const profileRes = await getMyProfile();
-    const user = profileRes?.data || profileRes?.result;
+    const profileRes = (await getMyProfile()) as ActionResponse<IUser>;
+    const user = profileRes?.data;
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">

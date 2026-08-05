@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { IBooking, BookingStatus, PaymentStatus, PaymentProvider } from "@/types";
-import { cancelCustomerBooking } from "../_actions/booking.actions";
+import { cancelCustomerBooking } from "@/actions/booking.actions";
 import { createPaymentIntent } from "@/app/(payment)/_actions/payment.actions";
 import { cancelBookingSchema } from "../_schema/booking.schema";
 import CreateReviewModal from "../_components/CreateReviewModal";

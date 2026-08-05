@@ -1,7 +1,5 @@
 // src/app/(dashboardGroup)/admin/categories/page.tsx
-
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { Metadata } from "next";
 import {
     dehydrate,
@@ -12,6 +10,7 @@ import CategoryTable from "../_components/CategoryTable";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ICategory } from "@/types";
+import { getAllCategories } from "@/actions/category.actions";
 
 export const metadata: Metadata = {
     title: "Categories | Admin Dashboard",
@@ -20,30 +19,11 @@ export const metadata: Metadata = {
 
 async function fetchCategories(): Promise<ICategory[]> {
     try {
-        const cookieStore = await cookies();
-        const token =
-            cookieStore.get("accessToken")?.value ||
-            cookieStore.get("token")?.value;
-
-        const apiUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
-
-        if (!apiUrl) {
-            console.error("Backend API URL is not defined in environment variables.");
-            return [];
+        const res = await getAllCategories({ useCache: false });
+        if (res?.success && Array.isArray(res.data)) {
+            return res.data as ICategory[];
         }
-
-        const res = await fetch(`${apiUrl}/api/admin/categories`, {
-            headers: {
-                "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            cache: "no-store",
-        });
-
-        if (!res.ok) return [];
-
-        const response = await res.json();
-        return response?.data || [];
+        return [];
     } catch (error) {
         console.error("Error fetching categories:", error);
         return [];

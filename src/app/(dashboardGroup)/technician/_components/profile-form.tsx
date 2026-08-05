@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { updateProfile } from "../_actions/technician.action";
+import { updateProfile } from "@/actions/technician.actions";
 import { ITechnician, IUser } from "@/types";
 import { useToast } from "@/providers/toast-provider";
 import {

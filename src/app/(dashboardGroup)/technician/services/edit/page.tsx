@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getServiceById } from "@/actions/services.actions";
 import { ServiceForm } from "../../_components/service-form";
 import { ArrowLeft, Wrench } from "lucide-react";
-import { ICategory, IService } from "@/types";
+import { ICategory, IService, ActionResponse } from "@/types";
 
 const BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
@@ -12,7 +12,7 @@ async function getCategories(): Promise<ICategory[]> {
         const res = await fetch(`${BASE_URL}/api/categories`, { cache: "no-store" });
         if (!res.ok) return [];
         const data = await res.json();
-        return data?.data || data?.result || [];
+        return data?.data || [];
     } catch (error) {
         console.error("Failed to fetch categories:", error);
         return [];
@@ -34,11 +34,11 @@ export default async function EditServicePage({ searchParams }: PageProps) {
     }
 
     const [serviceRes, categories] = await Promise.all([
-        getServiceById(serviceId),
+        getServiceById(serviceId) as Promise<ActionResponse<IService>>,
         getCategories(),
     ]);
 
-    const service: IService | null = serviceRes?.data || serviceRes?.result || null;
+    const service: IService | null = serviceRes?.data || null;
 
     if (!service) {
         notFound();

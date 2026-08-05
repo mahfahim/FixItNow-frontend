@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { createBooking } from "../../_actions/booking.actions";
+import { createBooking } from "@/actions/booking.actions";
 import { createPaymentIntent } from "@/app/(payment)/_actions/payment.actions";
 import { PaymentProvider } from "@/types";
 import {

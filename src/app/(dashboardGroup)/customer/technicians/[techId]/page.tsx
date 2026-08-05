@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTechnicianById } from "@/actions/technician.actions";
+import { ActionResponse, ITechnician } from "@/types";
 import {
     ArrowLeft,
     Star,
@@ -16,26 +17,38 @@ import {
 
 interface SingleTechnicianPageProps {
     params: Promise<{
-        techId: string; // 👈 [techId] ফোল্ডারের নামের সাথে মিল রাখা হয়েছে
+        techId: string;
     }>;
 }
 
+// Extend ITechnician to safely support potential backend fallbacks/aliases
+type DetailedTechnician = ITechnician & {
+    name?: string;
+    email?: string;
+    avatar?: string;
+    price?: number | string;
+    specialization?: string | string[];
+    skills?: string[];
+    rating?: number | string;
+    experienceYears?: number;
+};
+
 export default async function SingleTechnicianPage({ params }: SingleTechnicianPageProps) {
     const resolvedParams = await params;
-    const techId = resolvedParams.techId; // 👈 সঠিক Dynamic Param ধরা হলো
+    const techId = resolvedParams.techId;
 
     if (!techId) {
         notFound();
     }
 
-    const res = await getTechnicianById(techId);
+    const res = (await getTechnicianById(techId)) as ActionResponse<DetailedTechnician>;
 
     if (!res?.success || !res?.data) {
         notFound();
     }
 
     const tech = res.data;
-    const name = tech.name || tech.user?.name || "Technician Profile";
+    const name = tech.user?.name || tech.name || "Technician Profile";
     const email = tech.user?.email || tech.email;
 
     // Image Resolution
@@ -43,22 +56,22 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
         tech.profileImage ||
         tech.user?.profileImage ||
         tech.avatar ||
-        tech.user?.avatar ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
-    const hourlyRate = tech.hourlyRate || tech.price || 0;
+    const hourlyRate = tech.hourlyRate ?? tech.price ?? 0;
+    const ratingValue = tech.averageRating ?? tech.rating;
+    const experienceValue = tech.yearsOfExperience ?? tech.experienceYears ?? 1;
 
-    const specializations = Array.isArray(tech.specialization)
-        ? tech.specialization
-        : tech.specialization
-            ? [tech.specialization]
-            : Array.isArray(tech.skills)
-                ? tech.skills
-                : ["General Repairs"];
+    const rawSpecialization = tech.specialization || tech.skills;
+    const specializations: string[] = Array.isArray(rawSpecialization)
+        ? rawSpecialization
+        : typeof rawSpecialization === "string"
+            ? [rawSpecialization]
+            : ["General Repairs"];
 
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-8 text-slate-900">
-            {/* Back Link - Route Fixed */}
+            {/* Back Link */}
             <Link
                 href="/customer/technicians"
                 className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
@@ -99,12 +112,12 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-700">
                                 <span className="flex items-center gap-1 font-semibold text-amber-500">
                                     <Star className="w-4 h-4 fill-amber-500" />
-                                    {tech.rating || tech.averageRating ? Number(tech.rating || tech.averageRating).toFixed(1) : "5.0"} Rating
+                                    {ratingValue ? Number(ratingValue).toFixed(1) : "5.0"} Rating
                                 </span>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
                                     <Briefcase className="w-4 h-4 text-slate-500" />
-                                    {tech.experienceYears || tech.yearsOfExperience || 1}+ Years Experience
+                                    {experienceValue}+ Years Experience
                                 </span>
                             </div>
                         </div>

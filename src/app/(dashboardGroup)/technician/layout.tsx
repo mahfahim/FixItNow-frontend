@@ -6,33 +6,23 @@ import { useState, useEffect } from "react";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { DashboardSidebar } from "../_components/dashboard-sidebar";
 import { getMyProfile } from "@/actions/getMe.action";
+import { IUser, ActionResponse } from "@/types";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
-interface IUserProfile {
-    name?: string;
-    email?: string;
-    role?: "ADMIN" | "TECHNICIAN" | "CUSTOMER";
-    image?: string;
-    technicianProfile?: {
-        profileImage?: string | null;
-    } | null;
-}
-
 export default function TechnicianLayout({ children }: DashboardLayoutProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [user, setUser] = useState<IUserProfile | null>(null);
+    const [user, setUser] = useState<IUser | null>(null);
 
     // Dynamic profile fetch
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const res = await getMyProfile();
-                const profileData = res?.data || res?.result;
-                if (res?.success && profileData) {
-                    setUser(profileData);
+                const res = (await getMyProfile()) as ActionResponse<IUser>;
+                if (res?.success && res?.data) {
+                    setUser(res.data);
                 }
             } catch (error) {
                 console.error("Failed to load technician profile in layout:", error);
@@ -59,7 +49,7 @@ export default function TechnicianLayout({ children }: DashboardLayoutProps) {
                     <DashboardHeader
                         onMenuClick={() => setIsSidebarOpen((prev) => !prev)}
                         userName={user?.name || "Technician"}
-                        userImage={user?.technicianProfile?.profileImage || user?.image}
+                        userImage={user?.technicianProfile?.profileImage || user?.profileImage || undefined}
                     />
                 </div>
 

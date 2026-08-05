@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useTransition, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { confirmPayment } from "../../_actions/payment.actions";
+import { confirmPayment } from "@/actions/payment.actions";
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getMyProfile } from "@/actions/getMe.action";
 import { GetMeCustomer } from "../_components/getMe-customer";
+import { ActionResponse, IUser } from "@/types";
 import { Edit3, User, Mail, Shield, AlertCircle, Image as ImageIcon, Activity } from "lucide-react";
 
 export const metadata = {
@@ -10,8 +11,8 @@ export const metadata = {
 };
 
 export default async function CustomerProfilePage() {
-    const response = await getMyProfile();
-    const user = response?.data || response?.result;
+    const response = (await getMyProfile()) as ActionResponse<IUser>;
+    const user = response?.data;
 
     if (!response?.success || !user) {
         return (
@@ -24,8 +25,7 @@ export default async function CustomerProfilePage() {
         );
     }
 
-    // Backend Key Safety Check for Image
-    const avatarUrl = user?.profileImage || user?.image || user?.avatar || "";
+    const avatarUrl = user.profileImage || "";
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">

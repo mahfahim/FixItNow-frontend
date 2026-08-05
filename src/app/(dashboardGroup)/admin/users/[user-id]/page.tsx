@@ -1,26 +1,30 @@
 // src/app/(dashboardGroup)/admin/users/[user-id]/page.tsx
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
-import { getAllUsers } from "../../_actions/admin.actions";
+import { getAllUsers } from "../../../../../actions/admin.actions";
 import { UserStatusCard } from "../../_components/user-status-card";
-import { IUser } from "@/types";
+import { IUser, PaginatedActionResponse } from "@/types";
 
 export default async function AdminUserDetailsPage({
     params,
 }: {
     params: Promise<{ "user-id": string }>;
 }) {
-    
     const resolvedParams = await params;
     const userId = resolvedParams["user-id"];
 
-    
-    const response = await getAllUsers({ searchTerm: userId, limit: 1 });
+    const response = (await getAllUsers({
+        searchTerm: userId,
+        limit: 1,
+    })) as PaginatedActionResponse<IUser>;
 
-    
-    const matchedUser: IUser | undefined = response?.data?.find((u: IUser) => u.id === userId)
-        || response?.data?.[0];
+    const users = response?.data || [];
+    const matchedUser: IUser | undefined =
+        users.find((u) => u.id === userId) || users[0];
+
+    const userImage = matchedUser?.profileImage;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -43,8 +47,20 @@ export default async function AdminUserDetailsPage({
                 {/* Basic User Information Display */}
                 <div className="md:col-span-1">
                     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
-                        <div className="h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <UserIcon className="h-8 w-8 text-indigo-600" />
+
+                        {/*  Added 'relative' class to parent for Next Image 'fill' to work */}
+                        <div className="relative h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border-2 border-white shadow-sm">
+                            {userImage ? (
+                                <Image
+                                    src={userImage}
+                                    alt={matchedUser?.name || "User Profile"}
+                                    fill
+                                    className="object-cover"
+                                    sizes="64px"
+                                />
+                            ) : (
+                                <UserIcon className="h-8 w-8 text-indigo-600 z-10" />
+                            )}
                         </div>
 
                         <div className="text-center space-y-1 mb-6">
@@ -69,7 +85,9 @@ export default async function AdminUserDetailsPage({
                             <div className="flex justify-between">
                                 <span className="text-slate-500">Joined</span>
                                 <span className="text-slate-900">
-                                    {matchedUser?.createdAt ? new Date(matchedUser.createdAt).toLocaleDateString() : 'N/A'}
+                                    {matchedUser?.createdAt
+                                        ? new Date(matchedUser.createdAt).toLocaleDateString()
+                                        : "N/A"}
                                 </span>
                             </div>
                         </div>
@@ -81,14 +99,24 @@ export default async function AdminUserDetailsPage({
                     {/* Status Toggle Client Component */}
                     <UserStatusCard
                         userId={userId}
+                        userName={matchedUser?.name || "Unknown User"}
+                        userEmail={matchedUser?.email}
                         currentStatus={matchedUser?.status}
+                        userImage={userImage}
                     />
 
-                    {/* Placeholder for future admin controls (e.g., delete, reset password) */}
+                    {/* Placeholders for future admin controls */}
                     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm max-w-xl opacity-50">
-                        <h3 className="text-lg font-semibold text-slate-900 mb-1">Advanced Settings</h3>
-                        <p className="text-sm text-slate-500 mb-4">Other administrative actions will appear here.</p>
-                        <button disabled className="px-4 py-2 bg-slate-100 text-slate-400 rounded-lg text-sm font-medium cursor-not-allowed">
+                        <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                            Advanced Settings
+                        </h3>
+                        <p className="text-sm text-slate-500 mb-4">
+                            Other administrative actions will appear here.
+                        </p>
+                        <button
+                            disabled
+                            className="px-4 py-2 bg-slate-100 text-slate-400 rounded-lg text-sm font-medium cursor-not-allowed"
+                        >
                             Reset Password
                         </button>
                     </div>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
 import { ServiceForm } from "../../_components/service-form";
 import { ArrowLeft } from "lucide-react";
-import { ICategory } from "@/types";
+import { ICategory, IUser, ActionResponse } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +12,8 @@ const BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
 async function getCategories(): Promise<ICategory[]> {
     try {
         const res = await fetch(`${BASE_URL}/api/categories`, { cache: "no-store" });
-        const data = await res.json();
-        return data?.data || data?.result || [];
+        const responseData = await res.json();
+        return responseData?.data || [];
     } catch (error) {
         console.error("Failed to fetch categories:", error);
         return [];
@@ -22,11 +22,11 @@ async function getCategories(): Promise<ICategory[]> {
 
 export default async function CreateServicePage() {
     const [profileRes, categories] = await Promise.all([
-        getMyProfile(),
+        getMyProfile() as Promise<ActionResponse<IUser>>,
         getCategories(),
     ]);
 
-    const user = profileRes?.data || profileRes?.result;
+    const user = profileRes?.data;
     const technicianId = user?.technicianProfile?.id || user?.id;
 
     return (

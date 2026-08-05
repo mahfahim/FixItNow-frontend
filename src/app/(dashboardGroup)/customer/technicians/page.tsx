@@ -1,7 +1,12 @@
 import { getAllTechnicians } from "@/actions/technician.actions";
 import { TechniciansClientList } from "../_components/technicians-client-list";
 import { Users } from "lucide-react";
-import { ITechnicianFilterOptions, IPaginationOptions } from "@/types";
+import {
+    ITechnicianFilterOptions,
+    IPaginationOptions,
+    ActionResponse,
+    ITechnician,
+} from "@/types";
 
 interface PageProps {
     searchParams: Promise<{
@@ -32,8 +37,8 @@ export default async function TechniciansPage({ searchParams }: PageProps) {
         sortOrder: resolvedSearchParams.sortOrder || "desc",
     };
 
-    // First Load Initial Fetching on Server Side
-    const initialData = await getAllTechnicians(queryFilters);
+    // First Load Initial Fetching on Server Side with explicit Generic typing
+    const initialData = (await getAllTechnicians(queryFilters)) as ActionResponse<ITechnician[]>;
 
     return (
         <div className="p-6 space-y-6 bg-slate-50 min-h-screen">

@@ -1,11 +1,10 @@
-//  src/app/(dashboardGroup)/customer/layout.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { DashboardSidebar } from "../_components/dashboard-sidebar";
 import { getMyProfile } from "@/actions/getMe.action";
+import { ActionResponse, IUser } from "@/types";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -26,10 +25,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const res = await getMyProfile();
-                const profileData = res?.data || res?.result;
-                if (res?.success && profileData) {
-                    setUser(profileData);
+                const res = (await getMyProfile()) as ActionResponse<IUser>;
+
+                if (res?.success && res?.data) {
+                    const userData = res.data;
+                    setUser({
+                        name: userData.name,
+                        email: userData.email,
+                        role: userData.role,
+                        image: userData.profileImage || undefined,
+                    });
                 }
             } catch (error) {
                 console.error("Failed to load user profile in layout:", error);

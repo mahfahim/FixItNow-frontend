@@ -2,18 +2,17 @@
 'use server';
 
 import { cookies } from "next/headers";
+import { COOKIE_NAMES, DEFAULT_HEADERS } from "./constants";
 
 /**
- * Global helper function to retrieve authorization headers with Bearer token
+ * Helper to retrieve authorization headers using centralized constants.
  */
 export async function getAuthHeaders() {
   const cookieStore = await cookies();
-  const token =
-    cookieStore.get("accessToken")?.value ||
-    cookieStore.get("token")?.value;
+  const token = cookieStore.get(COOKIE_NAMES.ACCESS_TOKEN)?.value;
 
   return {
-    "Content-Type": "application/json",
+    ...DEFAULT_HEADERS,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }

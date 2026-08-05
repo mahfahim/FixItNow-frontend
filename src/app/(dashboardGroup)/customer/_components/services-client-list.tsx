@@ -1,10 +1,11 @@
+// src/app/(dashboardGroup)/customer/_components/service-client-list.tsx
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { getAllServices } from "@/actions/services.actions";
 import { ServiceCustomerCard } from "./service-customer";
 import { ServiceFilters, ICategoryOption } from "./service-filters";
-import { IService } from "@/types";
+import { ActionResponse, IService } from "@/types";
 import { IServiceFilterOptions } from "@/types/service.types";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -21,15 +22,14 @@ export function ServicesClientList({
     queryFilters,
     isTechnician,
 }: ServicesClientListProps) {
-    // TanStack Query দিয়ে ফিল্টার ও ক্যাশিং হ্যান্ডেল করা হচ্ছে
     const { data: services = [], isFetching } = useQuery<IService[]>({
         queryKey: ["services", queryFilters],
         queryFn: async () => {
-            const res = await getAllServices(queryFilters);
-            return res?.data || res?.result || (Array.isArray(res) ? res : []);
+            const res = (await getAllServices(queryFilters)) as ActionResponse<IService[]>;
+            return res?.data || (Array.isArray(res) ? res : []);
         },
         initialData: initialServices,
-        staleTime: 1000 * 60 * 5, // ৫ মিনিট ক্লায়েন্ট সাইডে ক্যাশ থাকবে
+        staleTime: 1000 * 60 * 5,
     });
 
     return (

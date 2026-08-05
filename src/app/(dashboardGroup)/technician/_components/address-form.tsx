@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { addAddress } from "../_actions/address.actions";
+import { addAddress } from "@/actions/address.actions";
 import { ICreateAddress } from "@/types";
 import { useToast } from "@/providers/toast-provider";
 import { Loader2, MapPin, Tag, Hash } from "lucide-react";

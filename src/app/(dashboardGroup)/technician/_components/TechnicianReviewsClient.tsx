@@ -5,7 +5,7 @@ import React, { useEffect, useState, useTransition } from "react";
 import { getTechnicianReviews } from "@/actions/review.actions";
 import ReviewStatsSummary from "../_components/ReviewStatsSummary";
 import TechnicianReviewCard from "../_components/TechnicianReviewCard";
-import { IReview } from "@/types";
+import { ActionResponse, IReview } from "@/types";
 import { Loader2, Star, AlertCircle } from "lucide-react";
 import { useToast } from "@/providers/toast-provider";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,7 @@ interface TechnicianReviewsClientProps {
 }
 
 export default function TechnicianReviewsClient({ technicianId }: TechnicianReviewsClientProps) {
-    const { error } = useToast();
+    const { error: toastError } = useToast();
     const [reviews, setReviews] = useState<IReview[]>([]);
     const [isPending, startTransition] = useTransition();
     const [apiError, setApiError] = useState<string>("");
@@ -31,22 +31,23 @@ export default function TechnicianReviewsClient({ technicianId }: TechnicianRevi
 
     useEffect(() => {
         if (!technicianId) {
-            error("Missing Information", "Technician ID is required to fetch reviews.");
+            toastError("Missing Information", "Technician ID is required to fetch reviews.");
             return;
         }
 
         startTransition(async () => {
-            const res = await getTechnicianReviews(technicianId);
+            const res = (await getTechnicianReviews(technicianId)) as ActionResponse<IReview[]>;
+
             if (res.success && res.data) {
                 setReviews(res.data);
                 setApiError("");
             } else {
-                const errMsg = res.error || "Failed to fetch reviews.";
+                const errMsg = res.error || res.message || "Failed to fetch reviews.";
                 setApiError(errMsg);
-                error("Fetch Error", errMsg);
+                toastError("Fetch Error", errMsg);
             }
         });
-    }, [technicianId, error]);
+    }, [technicianId, toastError]);
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 pb-10">

@@ -3,8 +3,9 @@
 
 import React, { useState, useTransition } from "react";
 import { Star, Loader2, MessageSquare, AlertCircle } from "lucide-react";
-import { createReview } from "../_actions/review.actions";
+import { createReview } from "@/actions/review.actions";
 import { useToast } from "@/providers/toast-provider";
+import { ActionResponse, IReview } from "@/types";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,21 +50,21 @@ export default function CreateReviewModal({
         setErrorMsg("");
 
         startTransition(async () => {
-            const res = await createReview(
+            const res = (await createReview(
                 {
                     bookingId,
                     rating,
                     comment,
                 },
                 token
-            );
+            )) as ActionResponse<IReview> & { errors?: string };
 
             if (res.success) {
                 success("Review Submitted", "Thank you for sharing your feedback!");
                 if (onSuccess) onSuccess();
                 onClose();
             } else {
-                const msg = res.error || res.message || "Failed to submit review.";
+                const msg = res.error || res.errors || res.message || "Failed to submit review.";
                 setErrorMsg(msg);
                 toastError("Submission Failed", msg);
             }

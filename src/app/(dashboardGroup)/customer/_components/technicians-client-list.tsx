@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getAllTechnicians } from "@/actions/technician.actions";
 import { TechnicianCustomerCard } from "./technician-view-customer";
 import { TechnicianFilters } from "./technician-filters";
-import { ITechnician, ITechnicianFilterOptions, IPaginationOptions } from "@/types";
+import { ActionResponse, ITechnician, ITechnicianFilterOptions, IPaginationOptions } from "@/types";
 import { AlertCircle, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,15 +17,7 @@ import {
 } from "@/components/ui/select";
 
 interface TechniciansClientListProps {
-    initialData: {
-        data?: ITechnician[];
-        meta?: {
-            page: number;
-            limit: number;
-            total: number;
-            totalPage: number;
-        };
-    };
+    initialData: ActionResponse<ITechnician[]>;
     queryFilters: ITechnicianFilterOptions & IPaginationOptions;
 }
 
@@ -36,21 +28,20 @@ export function TechniciansClientList({
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // TanStack Query for dynamic fetching
-    const { data: response, isFetching } = useQuery({
+    // TanStack Query for dynamic fetching with explicit ActionResponse typing
+    const { data: response, isFetching } = useQuery<ActionResponse<ITechnician[]>>({
         queryKey: ["technicians", queryFilters],
         queryFn: async () => {
-            const res = await getAllTechnicians(queryFilters);
+            const res = (await getAllTechnicians(queryFilters)) as ActionResponse<ITechnician[]>;
             return res;
         },
         initialData: initialData,
         staleTime: 1000 * 60 * 3,
     });
 
-    const technicians: ITechnician[] =
-        response?.data || response?.result || (Array.isArray(response) ? response : []);
+    const technicians: ITechnician[] = Array.isArray(response?.data) ? response.data : [];
 
-    const meta = response?.meta || response?.data?.meta || {
+    const meta = response?.meta || {
         page: Number(queryFilters.page || 1),
         limit: Number(queryFilters.limit || 9),
         total: technicians.length,
@@ -66,7 +57,7 @@ export function TechniciansClientList({
     };
 
     const handlePageChange = (newPage: number) => {
-        if (newPage < 1 || newPage > meta.totalPage) return;
+        if (newPage < 1 || newPage > (meta.totalPage || 1)) return;
         updateQueryParams({ page: newPage });
     };
 

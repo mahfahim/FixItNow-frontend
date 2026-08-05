@@ -1,13 +1,13 @@
 import { getMyProfile } from "@/actions/getMe.action";
 import { ProfileForm } from "../../_components/profile-form";
-import { IUser, ITechnician } from "@/types";
+import { IUser, ITechnician, ActionResponse } from "@/types";
 import { UserCog } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditProfilePage() {
-    const profileRes = await getMyProfile();
-    const user: IUser = profileRes?.data || profileRes?.result;
+    const profileRes = (await getMyProfile()) as ActionResponse<IUser>;
+    const user = profileRes?.data;
     const techProfile: ITechnician | null = user?.technicianProfile || null;
 
     const updateKey = techProfile?.updatedAt

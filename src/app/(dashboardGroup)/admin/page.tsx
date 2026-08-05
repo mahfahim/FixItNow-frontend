@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
+import { ActionResponse, IUser } from "@/types";
 import {
     Users,
     ArrowRight,
@@ -10,8 +11,8 @@ import {
 } from "lucide-react";
 
 export default async function AdminDashboardPage() {
-    const profileRes = await getMyProfile();
-    const user = profileRes?.data || profileRes?.result;
+    const profileRes = (await getMyProfile()) as ActionResponse<IUser>;
+    const user = profileRes?.data;
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
