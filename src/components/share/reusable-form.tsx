@@ -56,10 +56,21 @@ export function ReusableForm<T extends Record<string, unknown>>({
 
     const [isPending, setIsPending] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [formData, setFormData] = useState<T>({
+
+    // Render-time state synchronization (prevents effect-driven cascading re-renders)
+    const [prevInitialData, setPrevInitialData] = useState(initialData);
+    const [formData, setFormData] = useState<T>(() => ({
         ...defaultValues,
         ...initialData,
-    });
+    }));
+
+    if (JSON.stringify(initialData) !== JSON.stringify(prevInitialData)) {
+        setPrevInitialData(initialData);
+        setFormData({
+            ...defaultValues,
+            ...initialData,
+        });
+    }
 
     const generateSlug = (text: string) => {
         return text
@@ -144,106 +155,121 @@ export function ReusableForm<T extends Record<string, unknown>>({
     };
 
     return (
-        <Card className="w-full bg-white shadow-xs border-slate-200 rounded-2xl">
-            <CardHeader className="border-b border-slate-100 pb-4">
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                    {icon}
-                    {title}
+        <Card className="w-full bg-white shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out border-slate-200/80 rounded-2xl overflow-hidden hover:border-slate-300">
+            <CardHeader className="border-b border-slate-100 pb-5 bg-slate-50/50">
+                <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-200 text-blue-600 transition-transform duration-300 group-hover:scale-105">
+                        {icon || <Save className="h-5 w-5" />}
+                    </div>
+                    <span>{title}</span>
                 </CardTitle>
             </CardHeader>
 
-            <CardContent className="pt-6">
-                <form onSubmit={handleSubmit} className="space-y-5">
+            <CardContent className="pt-7 px-6 sm:px-8 pb-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {errors.general && (
-                        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-sm flex items-center gap-2 font-medium">
-                            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-                            <span>{errors.general}</span>
+                        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-sm flex items-start gap-3 font-medium animate-in fade-in slide-in-from-top-2 duration-300 shadow-sm">
+                            <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 mt-0.5" />
+                            <span className="leading-relaxed">{errors.general}</span>
                         </div>
                     )}
 
-                    {fields.map((field) => {
-                        const fieldValue = formData[field.name];
-                        const hasError = !!errors[field.name];
+                    <div className="space-y-5">
+                        {fields.map((field) => {
+                            const fieldValue = formData[field.name];
+                            const hasError = !!errors[field.name];
 
-                        return (
-                            <div key={field.name} className="space-y-1.5">
-                                {field.type !== "checkbox" && (
-                                    <Label htmlFor={field.name} className="text-slate-700 font-medium">
-                                        {field.label}{" "}
-                                        {field.required && <span className="text-rose-500">*</span>}
-                                    </Label>
-                                )}
-
-                                {(field.type === "text" || field.type === "url" || field.type === "number") && (
-                                    <Input
-                                        id={field.name}
-                                        type={field.type}
-                                        value={(fieldValue as string | number) ?? ""}
-                                        onChange={(e) => handleInputChange(field.name, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        className={`bg-white transition-colors ${field.fontMono ? "font-mono text-xs bg-slate-50" : ""
-                                            } ${hasError
-                                                ? "border-rose-500 focus-visible:ring-rose-500"
-                                                : "border-slate-200 focus-visible:ring-blue-500"
-                                            }`}
-                                    />
-                                )}
-
-                                {field.type === "textarea" && (
-                                    <Textarea
-                                        id={field.name}
-                                        rows={field.rows || 3}
-                                        value={(fieldValue as string) ?? ""}
-                                        onChange={(e) => handleInputChange(field.name, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        className={`bg-white resize-none transition-colors ${hasError
-                                                ? "border-rose-500 focus-visible:ring-rose-500"
-                                                : "border-slate-200 focus-visible:ring-blue-500"
-                                            }`}
-                                    />
-                                )}
-
-                                {field.type === "checkbox" && (
-                                    <div className="flex items-center space-x-2 pt-2">
-                                        <Checkbox
-                                            id={field.name}
-                                            checked={!!fieldValue}
-                                            onCheckedChange={(checked) => handleInputChange(field.name, checked)}
-                                        />
+                            return (
+                                <div key={field.name} className="group flex flex-col gap-2">
+                                    {field.type !== "checkbox" && (
                                         <Label
                                             htmlFor={field.name}
-                                            className="text-sm font-medium text-slate-800 cursor-pointer select-none"
+                                            className={`text-sm font-semibold transition-colors duration-200 ${hasError ? "text-rose-600" : "text-slate-700 group-focus-within:text-blue-600"
+                                                }`}
                                         >
                                             {field.label}
+                                            {field.required && <span className="text-rose-500 ml-1 font-bold">*</span>}
                                         </Label>
+                                    )}
+
+                                    <div className="relative">
+                                        {(field.type === "text" || field.type === "url" || field.type === "number") && (
+                                            <Input
+                                                id={field.name}
+                                                type={field.type}
+                                                value={(fieldValue as string | number) ?? ""}
+                                                onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                                placeholder={field.placeholder}
+                                                className={`bg-white text-slate-900 placeholder:text-slate-400 font-medium transition-all duration-200 shadow-sm rounded-xl h-11 ${field.fontMono ? "font-mono text-sm bg-slate-50/70 text-slate-800" : ""
+                                                    } ${hasError
+                                                        ? "border-rose-400 focus-visible:ring-4 focus-visible:ring-rose-500/15 focus-visible:border-rose-500"
+                                                        : "border-slate-200 hover:border-slate-300 focus-visible:ring-4 focus-visible:ring-blue-500/15 focus-visible:border-blue-600"
+                                                    }`}
+                                            />
+                                        )}
+
+                                        {field.type === "textarea" && (
+                                            <Textarea
+                                                id={field.name}
+                                                rows={field.rows || 4}
+                                                value={(fieldValue as string) ?? ""}
+                                                onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                                placeholder={field.placeholder}
+                                                className={`bg-white text-slate-900 placeholder:text-slate-400 font-medium resize-none transition-all duration-200 shadow-sm rounded-xl p-3 ${hasError
+                                                    ? "border-rose-400 focus-visible:ring-4 focus-visible:ring-rose-500/15 focus-visible:border-rose-500"
+                                                    : "border-slate-200 hover:border-slate-300 focus-visible:ring-4 focus-visible:ring-blue-500/15 focus-visible:border-blue-600"
+                                                    }`}
+                                            />
+                                        )}
+
+                                        {field.type === "checkbox" && (
+                                            <div
+                                                className="flex items-center space-x-3 p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/70 hover:border-slate-300 transition-all duration-200 cursor-pointer group/checkbox shadow-sm"
+                                                onClick={() => handleInputChange(field.name, !fieldValue)}
+                                            >
+                                                <Checkbox
+                                                    id={field.name}
+                                                    checked={!!fieldValue}
+                                                    onCheckedChange={(checked) => handleInputChange(field.name, checked)}
+                                                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-slate-300 transition-all duration-200 rounded-md"
+                                                />
+                                                <Label
+                                                    htmlFor={field.name}
+                                                    className="text-sm font-semibold text-slate-700 cursor-pointer select-none flex-1 group-hover/checkbox:text-slate-900 transition-colors"
+                                                >
+                                                    {field.label}
+                                                    {field.required && <span className="text-rose-500 ml-1 font-bold">*</span>}
+                                                </Label>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
 
-                                {hasError && (
-                                    <p className="text-xs text-rose-500 font-medium flex items-center gap-1 pt-0.5">
-                                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                                        {errors[field.name]}
-                                    </p>
-                                )}
-                            </div>
-                        );
-                    })}
+                                    {hasError && (
+                                        <p className="text-[13px] text-rose-500 font-semibold flex items-center gap-1.5 pt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                            {errors[field.name]}
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
 
-                    <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                    <div className="pt-6 mt-4 flex items-center justify-end gap-3 border-t border-slate-100">
                         <Button
                             type="button"
                             variant="outline"
                             disabled={isPending}
                             onClick={() => router.push(cancelUrl)}
-                            className="gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer rounded-xl"
+                            className="group gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 cursor-pointer rounded-xl transition-all duration-200 active:scale-[0.98] h-11 px-5 font-semibold"
                         >
-                            <ArrowLeft className="h-4 w-4" />
+                            <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={isPending}
-                            className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer rounded-xl shadow-xs"
+                            className="bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white gap-2 cursor-pointer rounded-xl shadow-md hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-200 h-11 px-6 font-semibold"
                         >
                             {isPending ? (
                                 <>
@@ -253,7 +279,7 @@ export function ReusableForm<T extends Record<string, unknown>>({
                             ) : (
                                 <>
                                     <Save className="h-4 w-4" />
-                                    {isEditing ? "Update" : "Save"}
+                                    {isEditing ? "Save Changes" : "Create Item"}
                                 </>
                             )}
                         </Button>
