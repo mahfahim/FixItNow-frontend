@@ -6,7 +6,6 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import { CACHE_REVALIDATE_SECONDS, CACHE_TAGS } from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type {
   IUserFilterOptions,
@@ -48,7 +47,7 @@ export async function getAllUsers(
       return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          revalidate: 60,
           tags: ["admin-users"],
         },
       });
@@ -98,7 +97,6 @@ export async function updateUserStatus(
  * Fetch all bookings across the platform for admin with search & filters.
  * Endpoint: GET /api/admin/bookings
  */
-
 export async function getAllBookingsAdmin(
   options: IBookingAdminFilterOptions = {}
 ): Promise<ActionResponse<unknown>> {
@@ -111,7 +109,7 @@ export async function getAllBookingsAdmin(
       return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          revalidate: 60,
           tags: ["admin-bookings"],
         },
       });
@@ -143,8 +141,8 @@ export async function getAllCategories(
       return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: [CACHE_TAGS.CATEGORIES],
+          revalidate: 60,
+          tags: ["categories"],
         },
       });
     },
@@ -171,7 +169,7 @@ export async function createCategory(
       const response = await apiClient.post(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag(CACHE_TAGS.CATEGORIES, "max");
+        revalidateTag("categories", "max");
       }
 
       return response;

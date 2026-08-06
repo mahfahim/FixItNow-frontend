@@ -6,7 +6,6 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import { CACHE_REVALIDATE_SECONDS } from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type {
   IPaymentFilterOptions,
@@ -34,7 +33,7 @@ export async function getPaymentHistory(
       return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          revalidate: 60,
           tags: ["payments", "payment-history"],
         },
       });
@@ -60,7 +59,7 @@ export async function getPaymentById(id: string): Promise<ActionResponse<unknown
       return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          revalidate: 60,
           tags: ["payments", `payment-${id}`],
         },
       });

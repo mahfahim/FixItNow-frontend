@@ -1,4 +1,3 @@
-// src/actions/services.actions.ts
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -6,7 +5,6 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import { CACHE_REVALIDATE_SECONDS } from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type {
   IServiceFilterOptions,
@@ -16,13 +14,9 @@ import type {
 } from "@/types";
 
 /* ==========================================================================
-   READ OPERATIONS (PUBLIC)
+   READ OPERATIONS
    ========================================================================== */
 
-/**
- * Fetch all services with optional search, filters, and pagination
- * Endpoint: GET /api/services
- */
 export async function getAllServices(
   options: IServiceFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<unknown>> {
@@ -32,7 +26,7 @@ export async function getAllServices(
     () =>
       apiClient.get(endpoint, {
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          revalidate: 60,
           tags: ["services"],
         },
       }),
@@ -44,10 +38,6 @@ export async function getAllServices(
   );
 }
 
-/**
- * Fetch a single service details by ID
- * Endpoint: GET /api/services/:id
- */
 export async function getServiceById(
   id: string
 ): Promise<ActionResponse<unknown>> {
@@ -57,7 +47,7 @@ export async function getServiceById(
     () =>
       apiClient.get(endpoint, {
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
+          revalidate: 60,
           tags: [`service-${id}`],
         },
       }),
@@ -70,13 +60,9 @@ export async function getServiceById(
 }
 
 /* ==========================================================================
-   MUTATION OPERATIONS (TECHNICIAN / ADMIN)
+   MUTATION OPERATIONS
    ========================================================================== */
 
-/**
- * Create a new service
- * Endpoint: POST /api/services
- */
 export async function createService(
   payload: ICreateServicePayload
 ): Promise<ActionResponse<unknown>> {
@@ -88,9 +74,10 @@ export async function createService(
       const response = await apiClient.post(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("services","default");
+        revalidateTag("services", "default");
         revalidatePath("/services");
         revalidatePath("/technician/services");
+        revalidatePath("/admin/services");
       }
 
       return response;
@@ -103,10 +90,6 @@ export async function createService(
   );
 }
 
-/**
- * Update an existing service by ID
- * Endpoint: PATCH /api/services/:id
- */
 export async function updateService(
   id: string,
   payload: IUpdateServicePayload
@@ -119,11 +102,12 @@ export async function updateService(
       const response = await apiClient.patch(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("services","default");
-        revalidateTag(`service-${id}`,"default");
+        revalidateTag("services", "default");
+        revalidateTag(`service-${id}`, "default");
         revalidatePath("/services");
         revalidatePath(`/services/${id}`);
         revalidatePath("/technician/services");
+        revalidatePath("/admin/services");
       }
 
       return response;
@@ -136,10 +120,6 @@ export async function updateService(
   );
 }
 
-/**
- * Delete a service by ID
- * Endpoint: DELETE /api/services/:id
- */
 export async function deleteService(
   id: string
 ): Promise<ActionResponse<unknown>> {
@@ -151,10 +131,11 @@ export async function deleteService(
       const response = await apiClient.delete(endpoint, { headers });
 
       if (response.success) {
-        revalidateTag("services","default");
-        revalidateTag(`service-${id}`,"default");
+        revalidateTag("services", "default");
+        revalidateTag(`service-${id}`, "default");
         revalidatePath("/services");
         revalidatePath("/technician/services");
+        revalidatePath("/admin/services");
       }
 
       return response;

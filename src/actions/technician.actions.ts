@@ -6,12 +6,6 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import {
-  API_ROUTES,
-  CACHE_REVALIDATE_SECONDS,
-  CACHE_TAGS,
-  REVALIDATE_PATHS,
-} from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type {
   ITechnicianFilterOptions,
@@ -32,13 +26,13 @@ import type {
 export async function getAllTechnicians(
   options: ITechnicianFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<unknown>> {
-  const endpoint = `${API_ROUTES.TECHNICIANS.BASE}${buildQueryString(options)}`;
+  const endpoint = `/api/technicians${buildQueryString(options)}`;
 
   return executeAction(
     () =>
       apiClient.get(endpoint, {
         cache: "no-store",
-        next: { tags: [CACHE_TAGS.TECHNICIANS] },
+        next: { tags: ["technicians"] },
       }),
     {
       method: "GET",
@@ -53,14 +47,14 @@ export async function getAllTechnicians(
  * Endpoint: GET /api/technicians/:id
  */
 export async function getTechnicianById(id: string): Promise<ActionResponse<unknown>> {
-  const endpoint = API_ROUTES.TECHNICIANS.BY_ID(id);
+  const endpoint = `/api/technicians/${id}`;
 
   return executeAction(
     () =>
       apiClient.get(endpoint, {
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: [CACHE_TAGS.TECHNICIAN(id)],
+          revalidate: 60,
+          tags: [`technician-${id}`],
         },
       }),
     {
@@ -80,17 +74,19 @@ export async function getTechnicianById(id: string): Promise<ActionResponse<unkn
  * Endpoint: GET /api/technicians/availability
  */
 export async function getAvailability(): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/technicians/availability";
+
   return executeAction(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(API_ROUTES.TECHNICIANS.AVAILABILITY, {
+      return apiClient.get(endpoint, {
         headers,
-        next: { tags: [CACHE_TAGS.TECHNICIAN_AVAILABILITY] },
+        next: { tags: ["technician-availability"] },
       });
     },
     {
       method: "GET",
-      endpoint: API_ROUTES.TECHNICIANS.AVAILABILITY,
+      endpoint,
       fallbackMessage: "Failed to fetch availability slots",
     }
   );
@@ -101,17 +97,19 @@ export async function getAvailability(): Promise<ActionResponse<unknown>> {
  * Endpoint: GET /api/technicians/bookings
  */
 export async function getTechnicianBookings(): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/technicians/bookings";
+
   return executeAction(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(API_ROUTES.TECHNICIANS.BOOKINGS, {
+      return apiClient.get(endpoint, {
         headers,
-        next: { tags: [CACHE_TAGS.TECHNICIAN_BOOKINGS] },
+        next: { tags: ["technician-bookings"] },
       });
     },
     {
       method: "GET",
-      endpoint: API_ROUTES.TECHNICIANS.BOOKINGS,
+      endpoint,
       fallbackMessage: "Failed to fetch technician bookings",
     }
   );
@@ -131,7 +129,7 @@ export async function updateBookingStatus(
   bookingId: string,
   payload: UpdateBookingStatusPayload
 ): Promise<ActionResponse<unknown>> {
-  const endpoint = API_ROUTES.TECHNICIANS.BOOKING_BY_ID(bookingId);
+  const endpoint = `/api/technicians/bookings/${bookingId}`;
 
   return executeAction(
     async () => {
@@ -139,8 +137,8 @@ export async function updateBookingStatus(
       const response = await apiClient.patch(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag(CACHE_TAGS.TECHNICIAN_BOOKINGS, "default");
-        revalidatePath(REVALIDATE_PATHS.TECHNICIAN_BOOKINGS, "page");
+        revalidateTag("technician-bookings", "default");
+        revalidatePath("/technician/bookings", "page");
       }
 
       return response;
@@ -160,25 +158,27 @@ export async function updateBookingStatus(
 export async function updateProfile(
   payload: IUpdateTechnicianProfilePayload
 ): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/technicians/profile";
+
   return executeAction(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(API_ROUTES.TECHNICIANS.PROFILE, payload, {
+      const response = await apiClient.patch(endpoint, payload, {
         headers,
       });
 
       if (response.success) {
-        revalidateTag(CACHE_TAGS.USER_PROFILE, "default");
-        revalidateTag(CACHE_TAGS.TECHNICIANS, "default");
-        revalidatePath(REVALIDATE_PATHS.TECHNICIAN_PROFILE, "page");
-        revalidatePath(REVALIDATE_PATHS.TECHNICIAN_PROFILE_EDIT, "page");
+        revalidateTag("user-profile", "default");
+        revalidateTag("technicians", "default");
+        revalidatePath("/technician/profile", "page");
+        revalidatePath("/technician/profile/edit", "page");
       }
 
       return response;
     },
     {
       method: "PATCH",
-      endpoint: API_ROUTES.TECHNICIANS.PROFILE,
+      endpoint,
       fallbackMessage: "Failed to update technician profile",
     }
   );
@@ -191,26 +191,28 @@ export async function updateProfile(
 export async function setAvailability(
   payload: IAvailabilitySlotPayload[]
 ): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/technicians/availability";
+
   return executeAction(
     async () => {
       const headers = await getAuthHeaders();
       const response = await apiClient.patch(
-        API_ROUTES.TECHNICIANS.AVAILABILITY,
+        endpoint,
         payload,
         { headers }
       );
 
       if (response.success) {
-        revalidateTag(CACHE_TAGS.TECHNICIAN_AVAILABILITY, "default");
-        revalidatePath(REVALIDATE_PATHS.TECHNICIAN_AVAILABILITY, "page");
-        revalidatePath(REVALIDATE_PATHS.TECHNICIAN_AVAILABILITY_EDIT, "page");
+        revalidateTag("technician-availability", "default");
+        revalidatePath("/technician/availability", "page");
+        revalidatePath("/technician/availability/edit", "page");
       }
 
       return response;
     },
     {
       method: "PATCH",
-      endpoint: API_ROUTES.TECHNICIANS.AVAILABILITY,
+      endpoint,
       fallbackMessage: "Failed to set availability slots",
     }
   );

@@ -4,7 +4,6 @@
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth-cookies";
-import { API_ROUTES } from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type { IRegisterUser, ILoginUser } from "@/types";
 
@@ -20,11 +19,13 @@ interface AuthTokens {
 export async function register(
   payload: IRegisterUser
 ): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/auth/register";
+
   return executeAction(
-    () => apiClient.post(API_ROUTES.AUTH.REGISTER, payload, { cache: "no-store" }),
+    () => apiClient.post(endpoint, payload, { cache: "no-store" }),
     {
       method: "POST",
-      endpoint: API_ROUTES.AUTH.REGISTER,
+      endpoint,
       fallbackMessage: "User registration failed",
     }
   );
@@ -38,10 +39,12 @@ export async function register(
 export async function login(
   payload: ILoginUser
 ): Promise<ActionResponse<AuthTokens>> {
+  const endpoint = "/api/auth/login";
+
   return executeAction(
     async () => {
       const response = await apiClient.post<AuthTokens>(
-        API_ROUTES.AUTH.LOGIN,
+        endpoint,
         payload,
         { cache: "no-store" }
       );
@@ -54,7 +57,7 @@ export async function login(
     },
     {
       method: "POST",
-      endpoint: API_ROUTES.AUTH.LOGIN,
+      endpoint,
       fallbackMessage: "User login failed",
     }
   );

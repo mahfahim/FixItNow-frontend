@@ -1,174 +1,120 @@
 // src/actions/review.actions.ts
-"use server";
+'use server';
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import { CACHE_REVALIDATE_SECONDS } from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type {
-  IReview,
-  IReviewFilterOptions,
+  IPaymentFilterOptions,
   IPaginationOptions,
-  ICreateReviewPayload,
+  ICreatePaymentPayload,
+  IConfirmPaymentPayload,
 } from "@/types";
 
 /* ==========================================================================
-   HELPERS
+   READ OPERATIONS
    ========================================================================== */
 
 /**
- * Retrieves authorization headers, accepting an optional override token.
+ * Fetch customer payment history with filtering and pagination.
+ * Endpoint: GET /api/payment/history
  */
-async function getAuthHeader(explicitToken?: string): Promise<Record<string, string>> {
-  if (explicitToken) {
-    const formattedToken = explicitToken.startsWith("Bearer ")
-      ? explicitToken
-      : `Bearer ${explicitToken}`;
-    return { Authorization: formattedToken };
-  }
-  return await getAuthHeaders();
-}
-
-/* ==========================================================================
-   READ OPERATIONS (PUBLIC & COMMON)
-   ========================================================================== */
-
-/**
- * Fetch all reviews with optional filtering and pagination.
- * Endpoint: GET /api/review
- */
-export async function getAllReviews(
-  options: IReviewFilterOptions & IPaginationOptions = {}
-): Promise<ActionResponse<IReview[]>> {
-  const endpoint = `/api/review${buildQueryString(options)}`;
-
-  return executeAction(
-    () =>
-      apiClient.get<IReview[]>(endpoint, {
-        next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: ["reviews"],
-        },
-      }),
-    {
-      method: "GET",
-      endpoint,
-      fallbackMessage: "Failed to fetch reviews",
-    }
-  );
-}
-
-/**
- * Fetch all reviews for a specific technician.
- * Endpoint: GET /api/review/technician/:technicianId
- */
-export async function getTechnicianReviews(
-  technicianId: string
-): Promise<ActionResponse<IReview[]>> {
-  const endpoint = `/api/review/technician/${technicianId}`;
-
-  return executeAction(
-    () =>
-      apiClient.get<IReview[]>(endpoint, {
-        next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: [`technician-reviews-${technicianId}`, "reviews"],
-        },
-      }),
-    {
-      method: "GET",
-      endpoint,
-      fallbackMessage: "Failed to fetch technician reviews",
-    }
-  );
-}
-
-/**
- * Fetch a review associated with a specific booking ID.
- * Endpoint: GET /api/review/booking/:bookingId
- */
-export async function getReviewByBookingId(
-  bookingId: string,
-  token?: string
-): Promise<ActionResponse<IReview | null>> {
-  const endpoint = `/api/review/booking/${bookingId}`;
+export async function getPaymentHistory(
+  options: IPaymentFilterOptions & IPaginationOptions = {}
+): Promise<ActionResponse<unknown>> {
+  const endpoint = `/api/payment/history${buildQueryString(options)}`;
 
   return executeAction(
     async () => {
-      const headers = await getAuthHeader(token);
-      return apiClient.get<IReview | null>(endpoint, {
+      const headers = await getAuthHeaders();
+      return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: [`booking-review-${bookingId}`],
+          revalidate: 60,
+          tags: ["payments", "payment-history"],
         },
       });
     },
     {
       method: "GET",
       endpoint,
-      fallbackMessage: "Failed to fetch review for this booking",
+      fallbackMessage: "Failed to fetch payment history",
     }
   );
 }
 
 /**
- * Get all reviews submitted by the authenticated logged-in customer.
- * Endpoint: GET /api/review/my-reviews
+ * Fetch specific payment details by Payment ID.
+ * Endpoint: GET /api/payment/:id
  */
-export async function getCustomerReviews(
-  token?: string
-): Promise<ActionResponse<IReview[]>> {
-  const endpoint = "/api/review/my-reviews";
+export async function getPaymentById(id: string): Promise<ActionResponse<unknown>> {
+  const endpoint = `/api/payment/${id}`;
 
   return executeAction(
     async () => {
-      const headers = await getAuthHeader(token);
-      return apiClient.get<IReview[]>(endpoint, {
+      const headers = await getAuthHeaders();
+      return apiClient.get(endpoint, {
         headers,
         next: {
-          revalidate: CACHE_REVALIDATE_SECONDS.SHORT,
-          tags: ["customer-reviews"],
+          revalidate: 60,
+          tags: ["payments", `payment-${id}`],
         },
       });
     },
     {
       method: "GET",
       endpoint,
-      fallbackMessage: "Failed to fetch customer reviews",
+      fallbackMessage: "Failed to fetch payment details",
     }
   );
 }
 
 /* ==========================================================================
-   MUTATION OPERATIONS (AUTHENTICATED)
+   MUTATION OPERATIONS
    ========================================================================== */
 
 /**
- * Submit a new review for a completed booking.
- * Endpoint: POST /api/review
+ * Create a new payment intent.
+ * Endpoint: POST /api/payment/create
  */
-export async function createReview(
-  reviewData: ICreateReviewPayload,
-  token?: string
-): Promise<ActionResponse<IReview>> {
-  const endpoint = "/api/review";
+export async function createPaymentIntent(
+  payload: ICreatePaymentPayload
+): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/payment/create";
 
   return executeAction(
     async () => {
-      const headers = await getAuthHeader(token);
-      const response = await apiClient.post<IReview>(endpoint, reviewData, { headers });
+      const headers = await getAuthHeaders();
+      return apiClient.post(endpoint, payload, { headers });
+    },
+    {
+      method: "POST",
+      endpoint,
+      fallbackMessage: "Failed to initialize payment",
+    }
+  );
+}
+
+/**
+ * Confirm payment transaction.
+ * Endpoint: POST /api/payment/confirm
+ */
+export async function confirmPayment(
+  payload: IConfirmPaymentPayload
+): Promise<ActionResponse<unknown>> {
+  const endpoint = "/api/payment/confirm";
+
+  return executeAction(
+    async () => {
+      const headers = await getAuthHeaders();
+      const response = await apiClient.post(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("customer-reviews", "max");
+        revalidateTag("payments", "max");
         revalidateTag("customer-bookings", "max");
-        revalidateTag("technicians", "max");
-        revalidateTag("reviews", "max");
-        revalidatePath("/customer/reviews", "page");
-        revalidatePath("/customer/dashboard", "page");
       }
 
       return response;
@@ -176,7 +122,7 @@ export async function createReview(
     {
       method: "POST",
       endpoint,
-      fallbackMessage: "Failed to submit review",
+      fallbackMessage: "Failed to confirm payment",
     }
   );
 }

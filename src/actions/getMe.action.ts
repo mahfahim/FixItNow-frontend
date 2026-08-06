@@ -5,7 +5,6 @@ import { revalidateTag } from "next/cache";
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
-import { CACHE_TAGS } from "@/lib/constants";
 import type { ActionResponse } from "@/types/api.types";
 import type { IUpdateUserProfile } from "@/types";
 
@@ -27,7 +26,7 @@ export async function getMyProfile(): Promise<ActionResponse<unknown>> {
         headers,
         cache: "no-store",
         next: {
-          tags: [CACHE_TAGS.USER_PROFILE],
+          tags: ["user-profile"],
         },
       });
     },
@@ -54,7 +53,7 @@ export async function updateMyProfile(
       const response = await apiClient.patch(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag(CACHE_TAGS.USER_PROFILE, "max");
+        revalidateTag("user-profile", "max");
       }
 
       return response;
