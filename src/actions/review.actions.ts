@@ -1,4 +1,5 @@
 // src/actions/review.actions.ts
+
 'use server';
 
 import { revalidateTag } from "next/cache";
@@ -6,115 +7,144 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import type { ActionResponse } from "@/types/api.types";
+import type { ActionResponse } from "@/types";
 import type {
-  IPaymentFilterOptions,
+  IReview,
+  IReviewFilterOptions,
   IPaginationOptions,
-  ICreatePaymentPayload,
-  IConfirmPaymentPayload,
+  ICreateReviewPayload,
 } from "@/types";
 
-/* ==========================================================================
-   READ OPERATIONS
-   ========================================================================== */
 
-/**
- * Fetch customer payment history with filtering and pagination.
- * Endpoint: GET /api/payment/history
- */
-export async function getPaymentHistory(
-  options: IPaymentFilterOptions & IPaginationOptions = {}
-): Promise<ActionResponse<unknown>> {
-  const endpoint = `/api/payment/history${buildQueryString(options)}`;
 
-  return executeAction(
+
+
+const getReviews = async (
+  options: IReviewFilterOptions & IPaginationOptions = {}
+): Promise<ActionResponse<IReview[]>> => {
+  const endpoint = `/api/reviews${buildQueryString(options)}`;
+
+  return executeAction<IReview[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IReview[]>(endpoint, {
         headers,
         next: {
           revalidate: 60,
-          tags: ["payments", "payment-history"],
+          tags: ["reviews"],
         },
       });
     },
     {
       method: "GET",
       endpoint,
-      fallbackMessage: "Failed to fetch payment history",
+      fallbackMessage: "Failed to fetch reviews",
     }
   );
-}
+};
 
-/**
- * Fetch specific payment details by Payment ID.
- * Endpoint: GET /api/payment/:id
- */
-export async function getPaymentById(id: string): Promise<ActionResponse<unknown>> {
-  const endpoint = `/api/payment/${id}`;
 
-  return executeAction(
+
+
+
+const getMyReviews = async (
+  options: IReviewFilterOptions & IPaginationOptions = {}
+): Promise<ActionResponse<IReview[]>> => {
+  const endpoint = `/api/reviews/my-reviews${buildQueryString(options)}`;
+
+  return executeAction<IReview[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IReview[]>(endpoint, {
         headers,
         next: {
           revalidate: 60,
-          tags: ["payments", `payment-${id}`],
+          tags: ["reviews", "my-reviews"],
         },
       });
     },
     {
       method: "GET",
       endpoint,
-      fallbackMessage: "Failed to fetch payment details",
+      fallbackMessage: "Failed to fetch your reviews",
     }
   );
-}
+};
 
-/* ==========================================================================
-   MUTATION OPERATIONS
-   ========================================================================== */
 
-/**
- * Create a new payment intent.
- * Endpoint: POST /api/payment/create
- */
-export async function createPaymentIntent(
-  payload: ICreatePaymentPayload
-): Promise<ActionResponse<unknown>> {
-  const endpoint = "/api/payment/create";
 
-  return executeAction(
+
+
+const getTechnicianReviews = async (
+  technicianId: string,
+  options: IReviewFilterOptions & IPaginationOptions = {}
+): Promise<ActionResponse<IReview[]>> => {
+  const endpoint = `/api/reviews/technician/${technicianId}${buildQueryString(options)}`;
+
+  return executeAction<IReview[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.post(endpoint, payload, { headers });
+      return apiClient.get<IReview[]>(endpoint, {
+        headers,
+        next: {
+          revalidate: 60,
+          tags: ["reviews", `technician-reviews-${technicianId}`],
+        },
+      });
     },
     {
-      method: "POST",
+      method: "GET",
       endpoint,
-      fallbackMessage: "Failed to initialize payment",
+      fallbackMessage: "Failed to fetch technician reviews",
     }
   );
-}
+};
 
-/**
- * Confirm payment transaction.
- * Endpoint: POST /api/payment/confirm
- */
-export async function confirmPayment(
-  payload: IConfirmPaymentPayload
-): Promise<ActionResponse<unknown>> {
-  const endpoint = "/api/payment/confirm";
 
-  return executeAction(
+
+
+
+const getReviewByBookingId = async (
+  bookingId: string
+): Promise<ActionResponse<IReview>> => {
+  const endpoint = `/api/reviews/booking/${bookingId}`;
+
+  return executeAction<IReview>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.post(endpoint, payload, { headers });
+      return apiClient.get<IReview>(endpoint, {
+        headers,
+        next: {
+          revalidate: 60,
+          tags: ["reviews", `booking-review-${bookingId}`],
+        },
+      });
+    },
+    {
+      method: "GET",
+      endpoint,
+      fallbackMessage: "Failed to fetch review for this booking",
+    }
+  );
+};
+
+
+
+
+
+const createReview = async (
+  payload: ICreateReviewPayload
+): Promise<ActionResponse<IReview>> => {
+  const endpoint = "/api/reviews";
+
+  return executeAction<IReview>(
+    async () => {
+      const headers = await getAuthHeaders();
+      const response = await apiClient.post<IReview>(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("payments", "max");
-        revalidateTag("customer-bookings", "max");
+        revalidateTag("reviews","max");
+        revalidateTag("customer-bookings","max");
       }
 
       return response;
@@ -122,7 +152,18 @@ export async function confirmPayment(
     {
       method: "POST",
       endpoint,
-      fallbackMessage: "Failed to confirm payment",
+      fallbackMessage: "Failed to create review",
     }
   );
-}
+};
+
+
+
+
+export {
+  createReview,
+  getReviews,
+  getMyReviews,
+  getTechnicianReviews,
+  getReviewByBookingId,
+};

@@ -1,32 +1,25 @@
 // src/actions/getMe.action.ts
+
 'use server';
 
 import { revalidateTag } from "next/cache";
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
-import type { ActionResponse } from "@/types/api.types";
-import type { IUpdateUserProfile } from "@/types";
+import type { ActionResponse } from "@/types";
+import type { IUser, IUpdateUserProfile } from "@/types";
 
-/* ==========================================================================
-   USER PROFILE ACTIONS
-   ========================================================================== */
-
-/**
- * Fetch current authenticated user's profile.
- * Endpoint: GET /api/auth/me
- */
-export async function getMyProfile(): Promise<ActionResponse<unknown>> {
+const getMyProfile = async (): Promise<ActionResponse<IUser>> => {
   const endpoint = "/api/auth/me";
 
-  return executeAction(
+  return executeAction<IUser>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IUser>(endpoint, {
         headers,
         cache: "no-store",
         next: {
-          tags: ["user-profile"],
+          tags: ["user-profile", "max"],
         },
       });
     },
@@ -36,21 +29,19 @@ export async function getMyProfile(): Promise<ActionResponse<unknown>> {
       fallbackMessage: "Failed to fetch user profile",
     }
   );
-}
+};
 
-/**
- * Update current authenticated user's profile.
- * Endpoint: PATCH /api/auth/me
- */
-export async function updateMyProfile(
+
+
+const updateMyProfile = async (
   payload: IUpdateUserProfile
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IUser>> => {
   const endpoint = "/api/auth/me";
 
-  return executeAction(
+  return executeAction<IUser>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(endpoint, payload, { headers });
+      const response = await apiClient.patch<IUser>(endpoint, payload, { headers });
 
       if (response.success) {
         revalidateTag("user-profile", "max");
@@ -64,4 +55,11 @@ export async function updateMyProfile(
       fallbackMessage: "Failed to update user profile",
     }
   );
-}
+};
+
+
+
+export {
+  getMyProfile,
+  updateMyProfile 
+};

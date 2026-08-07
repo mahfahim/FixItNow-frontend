@@ -1,36 +1,40 @@
 // src/actions/payment.actions.ts
+
 'use server';
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import type { ActionResponse } from "@/types/api.types";
 import type {
+  ActionResponse,
+  IPayment,
   IPaymentFilterOptions,
   IPaginationOptions,
   ICreatePaymentPayload,
   IConfirmPaymentPayload,
+  IRefundPaymentPayload,
 } from "@/types";
 
-/* ==========================================================================
-   READ OPERATIONS
-   ========================================================================== */
+interface ICreatePaymentResponse {
+  payment: IPayment;
+  gatewayUrl: string;
+}
 
-/**
- * Fetch customer payment history with filtering and pagination.
- * Endpoint: GET /api/payment/history
- */
-export async function getPaymentHistory(
+
+
+
+
+const getPaymentHistory = async (
   options: IPaymentFilterOptions & IPaginationOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IPayment[]>> => {
   const endpoint = `/api/payment/history${buildQueryString(options)}`;
 
-  return executeAction(
+  return executeAction<IPayment[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IPayment[]>(endpoint, {
         headers,
         next: {
           revalidate: 60,
@@ -44,19 +48,46 @@ export async function getPaymentHistory(
       fallbackMessage: "Failed to fetch payment history",
     }
   );
-}
+};
 
-/**
- * Fetch specific payment details by Payment ID.
- * Endpoint: GET /api/payment/:id
- */
-export async function getPaymentById(id: string): Promise<ActionResponse<unknown>> {
-  const endpoint = `/api/payment/${id}`;
 
-  return executeAction(
+
+
+const getAllPayments = async (
+  options: IPaymentFilterOptions & IPaginationOptions = {}
+): Promise<ActionResponse<IPayment[]>> => {
+  const endpoint = `/api/payment${buildQueryString(options)}`;
+
+  return executeAction<IPayment[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IPayment[]>(endpoint, {
+        headers,
+        next: {
+          revalidate: 60,
+          tags: ["payments"],
+        },
+      });
+    },
+    {
+      method: "GET",
+      endpoint,
+      fallbackMessage: "Failed to fetch payments",
+    }
+  );
+};
+
+
+
+
+
+const getPaymentById = async (id: string): Promise<ActionResponse<IPayment>> => {
+  const endpoint = `/api/payment/${id}`;
+
+  return executeAction<IPayment>(
+    async () => {
+      const headers = await getAuthHeaders();
+      return apiClient.get<IPayment>(endpoint, {
         headers,
         next: {
           revalidate: 60,
@@ -70,25 +101,21 @@ export async function getPaymentById(id: string): Promise<ActionResponse<unknown
       fallbackMessage: "Failed to fetch payment details",
     }
   );
-}
+};
 
-/* ==========================================================================
-   MUTATION OPERATIONS
-   ========================================================================== */
 
-/**
- * Create a new payment intent.
- * Endpoint: POST /api/payment/create
- */
-export async function createPaymentIntent(
+
+
+
+const createPaymentIntent = async (
   payload: ICreatePaymentPayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ICreatePaymentResponse>> => {
   const endpoint = "/api/payment/create";
 
-  return executeAction(
+  return executeAction<ICreatePaymentResponse>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.post(endpoint, payload, { headers });
+      return apiClient.post<ICreatePaymentResponse>(endpoint, payload, { headers });
     },
     {
       method: "POST",
@@ -96,25 +123,26 @@ export async function createPaymentIntent(
       fallbackMessage: "Failed to initialize payment",
     }
   );
-}
+};
 
-/**
- * Confirm payment transaction.
- * Endpoint: POST /api/payment/confirm
- */
-export async function confirmPayment(
+
+
+
+
+const confirmPayment = async (
   payload: IConfirmPaymentPayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IPayment>> => {
   const endpoint = "/api/payment/confirm";
 
-  return executeAction(
+  return executeAction<IPayment>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.post(endpoint, payload, { headers });
+      const response = await apiClient.post<IPayment>(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("payments", "max");
-        revalidateTag("customer-bookings", "max");
+        revalidateTag("payments","max");
+        revalidateTag("customer-bookings","max");
+        revalidatePath("/customer/bookings");
       }
 
       return response;
@@ -125,4 +153,47 @@ export async function confirmPayment(
       fallbackMessage: "Failed to confirm payment",
     }
   );
-}
+};
+
+
+
+
+
+const refundPayment = async (
+  payload: IRefundPaymentPayload
+): Promise<ActionResponse<IPayment>> => {
+  const endpoint = "/api/payment/refund";
+
+  return executeAction<IPayment>(
+    async () => {
+      const headers = await getAuthHeaders();
+      const response = await apiClient.post<IPayment>(endpoint, payload, { headers });
+
+      if (response.success) {
+        revalidateTag("payments","max");
+        revalidateTag("customer-bookings","max");
+        revalidatePath("/admin/payments");
+      }
+
+      return response;
+    },
+    {
+      method: "POST",
+      endpoint,
+      fallbackMessage: "Failed to process payment refund",
+    }
+  );
+};
+
+
+
+
+export type { ICreatePaymentResponse };
+export {
+  createPaymentIntent,
+  confirmPayment,
+  refundPayment,
+  getPaymentHistory,
+  getAllPayments,
+  getPaymentById,
+};

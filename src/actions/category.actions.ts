@@ -1,36 +1,35 @@
 // src/actions/category.actions.ts
+
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
 import { getCacheConfig, BaseCacheOptions } from "@/lib/cache-utils";
-import type { ActionResponse } from "@/types/api.types";
+import type { ActionResponse } from "@/types";
 import type {
+  ICategory,
   ICategoryFilterOptions,
   IPaginationOptions,
   ICreateCategoryPayload,
   IUpdateCategoryPayload,
 } from "@/types";
 
-export interface GetCategoriesOptions
+
+
+interface GetCategoriesOptions
   extends BaseCacheOptions,
     ICategoryFilterOptions,
     IPaginationOptions {}
 
-/* ==========================================================================
-   READ OPERATIONS (PUBLIC)
-   ========================================================================== */
 
-/**
- * Fetch all categories with optional search, filter, pagination, and cache options.
- * Endpoint: GET /api/categories
- */
-export async function getAllCategories(
+
+
+const getAllCategories = async (
   options: GetCategoriesOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ICategory[]>> => {
   const { useCache = true, cache, revalidateSeconds, tags, ...filterOptions } = options;
   const endpoint = `/api/categories${buildQueryString(filterOptions)}`;
 
@@ -41,24 +40,23 @@ export async function getAllCategories(
     tags: ["categories", ...(tags || [])],
   });
 
-  return executeAction(
-    () => apiClient.get(endpoint, fetchConfig),
+  return executeAction<ICategory[]>(
+    () => apiClient.get<ICategory[]>(endpoint, fetchConfig),
     {
       method: "GET",
       endpoint,
       fallbackMessage: "Failed to fetch categories",
     }
   );
-}
+};
 
-/**
- * Fetch a single category by its ID with cache configuration options.
- * Endpoint: GET /api/categories/:id
- */
-export async function getCategoryById(
+
+
+
+const getCategoryById = async (
   id: string,
   options: BaseCacheOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ICategory>> => {
   const { useCache = true, cache, revalidateSeconds, tags } = options;
   const endpoint = `/api/categories/${id}`;
 
@@ -69,38 +67,36 @@ export async function getCategoryById(
     tags: [`category-${id}`, ...(tags || [])],
   });
 
-  return executeAction(
-    () => apiClient.get(endpoint, fetchConfig),
+  return executeAction<ICategory>(
+    () => apiClient.get<ICategory>(endpoint, fetchConfig),
     {
       method: "GET",
       endpoint,
-      fallbackMessage: "Failed to fetch category",
+      fallbackMessage: "Failed to fetch category details",
     }
   );
-}
+};
 
-/* ==========================================================================
-   MUTATION OPERATIONS (ADMIN / AUTHENTICATED)
-   ========================================================================== */
 
-/**
- * Create a new category.
- * Endpoint: POST /api/categories
- */
-export async function createCategory(
+
+
+
+const createCategory = async (
   payload: ICreateCategoryPayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ICategory>> => {
   const endpoint = "/api/categories";
 
-  return executeAction(
+  return executeAction<ICategory>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.post(endpoint, payload, {
+      const response = await apiClient.post<ICategory>(endpoint, payload, {
         headers,
       });
 
       if (response.success) {
-        revalidateTag("categories", "max");
+        revalidateTag("categories","max");
+        revalidatePath("/admin/categories");
+        revalidatePath("/services");
       }
 
       return response;
@@ -111,26 +107,28 @@ export async function createCategory(
       fallbackMessage: "Failed to create category",
     }
   );
-}
+};
 
-/**
- * Update an existing category by ID.
- * Endpoint: PATCH /api/categories/:id
- */
-export async function updateCategory(
+
+
+
+
+const updateCategory = async (
   id: string,
   payload: IUpdateCategoryPayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ICategory>> => {
   const endpoint = `/api/categories/${id}`;
 
-  return executeAction(
+  return executeAction<ICategory>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(endpoint, payload, { headers });
+      const response = await apiClient.patch<ICategory>(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("categories", "max");
-        revalidateTag(`category-${id}`, "max");
+        revalidateTag("categories","max");
+        revalidateTag(`category-${id}`,"max");
+        revalidatePath("/admin/categories");
+        revalidatePath("/services");
       }
 
       return response;
@@ -141,23 +139,24 @@ export async function updateCategory(
       fallbackMessage: "Failed to update category",
     }
   );
-}
+};
 
-/**
- * Delete a category by ID.
- * Endpoint: DELETE /api/categories/:id
- */
-export async function deleteCategory(id: string): Promise<ActionResponse<unknown>> {
+
+
+
+const deleteCategory = async (id: string): Promise<ActionResponse<ICategory>> => {
   const endpoint = `/api/categories/${id}`;
 
-  return executeAction(
+  return executeAction<ICategory>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.delete(endpoint, { headers });
+      const response = await apiClient.delete<ICategory>(endpoint, { headers });
 
       if (response.success) {
-        revalidateTag("categories", "max");
-        revalidateTag(`category-${id}`, "max");
+        revalidateTag("categories","max");
+        revalidateTag(`category-${id}`,"max");
+        revalidatePath("/admin/categories");
+        revalidatePath("/services");
       }
 
       return response;
@@ -168,4 +167,16 @@ export async function deleteCategory(id: string): Promise<ActionResponse<unknown
       fallbackMessage: "Failed to delete category",
     }
   );
-}
+};
+
+
+
+
+export type { GetCategoriesOptions };
+export {
+  createCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
+};

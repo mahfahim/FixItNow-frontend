@@ -6,8 +6,11 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import type { ActionResponse } from "@/types/api.types";
+import type { ActionResponse } from "@/types";
 import type {
+  IUser,
+  IBooking,
+  ICategory,
   IUserFilterOptions,
   IUpdateUserStatusPayload,
   IPaginationOptions,
@@ -16,23 +19,15 @@ import type {
   PaymentStatus,
 } from "@/types";
 
-export interface IBookingAdminFilterOptions extends IPaginationOptions {
+interface IBookingAdminFilterOptions extends IPaginationOptions {
   search?: string;
   status?: BookingStatus | string;
   paymentStatus?: PaymentStatus | string;
 }
 
-/* ==========================================================================
-   USER MANAGEMENT (ADMIN)
-   ========================================================================== */
-
-/**
- * Fetch all users with filter and pagination options.
- * Endpoint: GET /api/admin/users
- */
-export async function getAllUsers(
+const getAllUsers = async (
   options: IUserFilterOptions & IPaginationOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IUser[]>> => {
   const queryOptions: Record<string, unknown> = { ...options };
   if (queryOptions.searchTerm) {
     queryOptions.search = queryOptions.searchTerm;
@@ -41,10 +36,10 @@ export async function getAllUsers(
 
   const endpoint = `/api/admin/users${buildQueryString(queryOptions)}`;
 
-  return executeAction(
+  return executeAction<IUser[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IUser[]>(endpoint, {
         headers,
         next: {
           revalidate: 60,
@@ -58,22 +53,18 @@ export async function getAllUsers(
       fallbackMessage: "Failed to fetch users",
     }
   );
-}
+};
 
-/**
- * Update user status (active/blocked/etc).
- * Endpoint: PATCH /api/admin/users/:id
- */
-export async function updateUserStatus(
+const updateUserStatus = async (
   id: string,
   payload: IUpdateUserStatusPayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IUser>> => {
   const endpoint = `/api/admin/users/${id}`;
 
-  return executeAction(
+  return executeAction<IUser>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(endpoint, payload, { headers });
+      const response = await apiClient.patch<IUser>(endpoint, payload, { headers });
 
       if (response.success) {
         revalidateTag("admin-users", "max");
@@ -87,26 +78,18 @@ export async function updateUserStatus(
       fallbackMessage: "Failed to update user status",
     }
   );
-}
+};
 
-/* ==========================================================================
-   BOOKING MANAGEMENT (ADMIN)
-   ========================================================================== */
-
-/**
- * Fetch all bookings across the platform for admin with search & filters.
- * Endpoint: GET /api/admin/bookings
- */
-export async function getAllBookingsAdmin(
+const getAllBookingsAdmin = async (
   options: IBookingAdminFilterOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IBooking[]>> => {
   const queryOptions: Record<string, unknown> = { ...options };
   const endpoint = `/api/admin/bookings${buildQueryString(queryOptions)}`;
 
-  return executeAction(
+  return executeAction<IBooking[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IBooking[]>(endpoint, {
         headers,
         next: {
           revalidate: 60,
@@ -120,25 +103,17 @@ export async function getAllBookingsAdmin(
       fallbackMessage: "Failed to fetch bookings",
     }
   );
-}
+};
 
-/* ==========================================================================
-   CATEGORY MANAGEMENT (ADMIN)
-   ========================================================================== */
-
-/**
- * Fetch all categories for admin overview.
- * Endpoint: GET /api/admin/categories
- */
-export async function getAllCategories(
-  options: IPaginationOptions = {}
-): Promise<ActionResponse<unknown>> {
+const getAllCategories = async (
+  options: IUserFilterOptions = {}
+): Promise<ActionResponse<ICategory[]>> => {
   const endpoint = `/api/admin/categories${buildQueryString(options)}`;
 
-  return executeAction(
+  return executeAction<ICategory[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<ICategory[]>(endpoint, {
         headers,
         next: {
           revalidate: 60,
@@ -152,21 +127,17 @@ export async function getAllCategories(
       fallbackMessage: "Failed to fetch categories",
     }
   );
-}
+};
 
-/**
- * Create a new service category from admin panel.
- * Endpoint: POST /api/admin/categories
- */
-export async function createCategory(
+const createCategory = async (
   payload: ICreateCategoryPayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ICategory>> => {
   const endpoint = "/api/admin/categories";
 
-  return executeAction(
+  return executeAction<ICategory>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.post(endpoint, payload, { headers });
+      const response = await apiClient.post<ICategory>(endpoint, payload, { headers });
 
       if (response.success) {
         revalidateTag("categories", "max");
@@ -180,4 +151,13 @@ export async function createCategory(
       fallbackMessage: "Failed to create category",
     }
   );
-}
+};
+
+export type { IBookingAdminFilterOptions };
+export {
+  getAllUsers,
+  updateUserStatus,
+  getAllBookingsAdmin,
+  getAllCategories,
+  createCategory,
+};

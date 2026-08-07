@@ -1,4 +1,5 @@
 // src/actions/technician.actions.ts
+
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -6,33 +7,32 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import type { ActionResponse } from "@/types/api.types";
+import type { ActionResponse } from "@/types";
 import type {
+  ITechnician,
   ITechnicianFilterOptions,
   IPaginationOptions,
-  BookingStatus,
+  IUpdateBookingStatusPayload,
   IUpdateTechnicianProfilePayload,
   IAvailabilitySlotPayload,
+  IAvailabilitySlot,
+  IBooking,
 } from "@/types";
 
-/* ==========================================================================
-   PUBLIC READ OPERATIONS
-   ========================================================================== */
 
-/**
- * Fetch all technicians with optional search, filters, and pagination.
- * Endpoint: GET /api/technicians
- */
-export async function getAllTechnicians(
+
+const getAllTechnicians = async (
   options: ITechnicianFilterOptions & IPaginationOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ITechnician[]>> => {
   const endpoint = `/api/technicians${buildQueryString(options)}`;
 
-  return executeAction(
+  return executeAction<ITechnician[]>(
     () =>
-      apiClient.get(endpoint, {
-        cache: "no-store",
-        next: { tags: ["technicians"] },
+      apiClient.get<ITechnician[]>(endpoint, {
+        next: {
+          revalidate: 60,
+          tags: ["technicians"],
+        },
       }),
     {
       method: "GET",
@@ -40,18 +40,18 @@ export async function getAllTechnicians(
       fallbackMessage: "Failed to fetch technicians",
     }
   );
-}
+};
 
-/**
- * Fetch technician details by ID.
- * Endpoint: GET /api/technicians/:id
- */
-export async function getTechnicianById(id: string): Promise<ActionResponse<unknown>> {
+
+
+const getTechnicianById = async (
+  id: string
+): Promise<ActionResponse<ITechnician>> => {
   const endpoint = `/api/technicians/${id}`;
 
-  return executeAction(
+  return executeAction<ITechnician>(
     () =>
-      apiClient.get(endpoint, {
+      apiClient.get<ITechnician>(endpoint, {
         next: {
           revalidate: 60,
           tags: [`technician-${id}`],
@@ -63,23 +63,17 @@ export async function getTechnicianById(id: string): Promise<ActionResponse<unkn
       fallbackMessage: "Failed to fetch technician details",
     }
   );
-}
+};
 
-/* ==========================================================================
-   AUTHENTICATED TECHNICIAN OPERATIONS
-   ========================================================================== */
 
-/**
- * Fetch availability slots for the logged-in technician.
- * Endpoint: GET /api/technicians/availability
- */
-export async function getAvailability(): Promise<ActionResponse<unknown>> {
+
+const getAvailability = async (): Promise<ActionResponse<IAvailabilitySlot[]>> => {
   const endpoint = "/api/technicians/availability";
 
-  return executeAction(
+  return executeAction<IAvailabilitySlot[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IAvailabilitySlot[]>(endpoint, {
         headers,
         next: { tags: ["technician-availability"] },
       });
@@ -90,19 +84,17 @@ export async function getAvailability(): Promise<ActionResponse<unknown>> {
       fallbackMessage: "Failed to fetch availability slots",
     }
   );
-}
+};
 
-/**
- * Get all bookings assigned to the logged-in technician.
- * Endpoint: GET /api/technicians/bookings
- */
-export async function getTechnicianBookings(): Promise<ActionResponse<unknown>> {
+
+
+const getTechnicianBookings = async (): Promise<ActionResponse<IBooking[]>> => {
   const endpoint = "/api/technicians/bookings";
 
-  return executeAction(
+  return executeAction<IBooking[]>(
     async () => {
       const headers = await getAuthHeaders();
-      return apiClient.get(endpoint, {
+      return apiClient.get<IBooking[]>(endpoint, {
         headers,
         next: { tags: ["technician-bookings"] },
       });
@@ -113,32 +105,25 @@ export async function getTechnicianBookings(): Promise<ActionResponse<unknown>> 
       fallbackMessage: "Failed to fetch technician bookings",
     }
   );
-}
+};
 
-interface UpdateBookingStatusPayload {
-  status: BookingStatus;
-  note?: string;
-  cancellationReason?: string;
-}
 
-/**
- * Update the status of a specific booking (e.g., ACCEPTED, COMPLETED, CANCELLED).
- * Endpoint: PATCH /api/technicians/bookings/:id
- */
-export async function updateBookingStatus(
+
+
+const updateBookingStatus = async (
   bookingId: string,
-  payload: UpdateBookingStatusPayload
-): Promise<ActionResponse<unknown>> {
+  payload: IUpdateBookingStatusPayload
+): Promise<ActionResponse<IBooking>> => {
   const endpoint = `/api/technicians/bookings/${bookingId}`;
 
-  return executeAction(
+  return executeAction<IBooking>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(endpoint, payload, { headers });
+      const response = await apiClient.patch<IBooking>(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("technician-bookings", "default");
-        revalidatePath("/technician/bookings", "page");
+        revalidateTag("technician-bookings","max");
+        revalidatePath("/technician/bookings");
       }
 
       return response;
@@ -149,29 +134,29 @@ export async function updateBookingStatus(
       fallbackMessage: "Failed to update booking status",
     }
   );
-}
+};
 
-/**
- * Update the logged-in technician's profile info.
- * Endpoint: PATCH /api/technicians/profile
- */
-export async function updateProfile(
+
+
+
+
+const updateProfile = async (
   payload: IUpdateTechnicianProfilePayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<ITechnician>> => {
   const endpoint = "/api/technicians/profile";
 
-  return executeAction(
+  return executeAction<ITechnician>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(endpoint, payload, {
+      const response = await apiClient.patch<ITechnician>(endpoint, payload, {
         headers,
       });
 
       if (response.success) {
-        revalidateTag("user-profile", "default");
-        revalidateTag("technicians", "default");
-        revalidatePath("/technician/profile", "page");
-        revalidatePath("/technician/profile/edit", "page");
+        revalidateTag("user-profile","max");
+        revalidateTag("technicians","max");
+        revalidatePath("/technician/profile");
+        revalidatePath("/technician/profile/edit");
       }
 
       return response;
@@ -182,30 +167,25 @@ export async function updateProfile(
       fallbackMessage: "Failed to update technician profile",
     }
   );
-}
+};
 
-/**
- * Set or update availability slots for the logged-in technician.
- * Endpoint: PATCH /api/technicians/availability
- */
-export async function setAvailability(
+
+
+
+const setAvailability = async (
   payload: IAvailabilitySlotPayload[]
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<unknown>> => {
   const endpoint = "/api/technicians/availability";
 
   return executeAction(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(
-        endpoint,
-        payload,
-        { headers }
-      );
+      const response = await apiClient.patch(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("technician-availability", "default");
-        revalidatePath("/technician/availability", "page");
-        revalidatePath("/technician/availability/edit", "page");
+        revalidateTag("technician-availability","max");
+        revalidatePath("/technician/availability");
+        revalidatePath("/technician/availability/edit");
       }
 
       return response;
@@ -216,4 +196,15 @@ export async function setAvailability(
       fallbackMessage: "Failed to set availability slots",
     }
   );
-}
+};
+
+
+export {
+  getAllTechnicians,
+  getTechnicianById,
+  getAvailability,
+  getTechnicianBookings,
+  updateBookingStatus,
+  updateProfile,
+  setAvailability,
+};

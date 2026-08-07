@@ -1,3 +1,5 @@
+// src/actions/services.actions.ts
+
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -5,26 +7,26 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import type { ActionResponse } from "@/types/api.types";
+import type { ActionResponse } from "@/types";
 import type {
+  IService,
   IServiceFilterOptions,
   IPaginationOptions,
   ICreateServicePayload,
   IUpdateServicePayload,
 } from "@/types";
 
-/* ==========================================================================
-   READ OPERATIONS
-   ========================================================================== */
 
-export async function getAllServices(
+
+
+const getAllServices = async (
   options: IServiceFilterOptions & IPaginationOptions = {}
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IService[]>> => {
   const endpoint = `/api/services${buildQueryString(options)}`;
 
-  return executeAction(
+  return executeAction<IService[]>(
     () =>
-      apiClient.get(endpoint, {
+      apiClient.get<IService[]>(endpoint, {
         next: {
           revalidate: 60,
           tags: ["services"],
@@ -36,16 +38,19 @@ export async function getAllServices(
       fallbackMessage: "Failed to fetch services",
     }
   );
-}
+};
 
-export async function getServiceById(
+
+
+
+const getServiceById = async (
   id: string
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IService>> => {
   const endpoint = `/api/services/${id}`;
 
-  return executeAction(
+  return executeAction<IService>(
     () =>
-      apiClient.get(endpoint, {
+      apiClient.get<IService>(endpoint, {
         next: {
           revalidate: 60,
           tags: [`service-${id}`],
@@ -54,27 +59,27 @@ export async function getServiceById(
     {
       method: "GET",
       endpoint,
-      fallbackMessage: "Failed to fetch service",
+      fallbackMessage: "Failed to fetch service details",
     }
   );
-}
+};
 
-/* ==========================================================================
-   MUTATION OPERATIONS
-   ========================================================================== */
 
-export async function createService(
+
+
+
+const createService = async (
   payload: ICreateServicePayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IService>> => {
   const endpoint = "/api/services";
 
-  return executeAction(
+  return executeAction<IService>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.post(endpoint, payload, { headers });
+      const response = await apiClient.post<IService>(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("services", "default");
+        revalidateTag("services","max");
         revalidatePath("/services");
         revalidatePath("/technician/services");
         revalidatePath("/admin/services");
@@ -88,22 +93,25 @@ export async function createService(
       fallbackMessage: "Failed to create service",
     }
   );
-}
+};
 
-export async function updateService(
+
+
+
+const updateService = async (
   id: string,
   payload: IUpdateServicePayload
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IService>> => {
   const endpoint = `/api/services/${id}`;
 
-  return executeAction(
+  return executeAction<IService>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.patch(endpoint, payload, { headers });
+      const response = await apiClient.patch<IService>(endpoint, payload, { headers });
 
       if (response.success) {
-        revalidateTag("services", "default");
-        revalidateTag(`service-${id}`, "default");
+        revalidateTag("services","max");
+        revalidateTag(`service-${id}`,"max");
         revalidatePath("/services");
         revalidatePath(`/services/${id}`);
         revalidatePath("/technician/services");
@@ -118,21 +126,24 @@ export async function updateService(
       fallbackMessage: "Failed to update service",
     }
   );
-}
+};
 
-export async function deleteService(
+
+
+
+const deleteService = async (
   id: string
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IService>> => {
   const endpoint = `/api/services/${id}`;
 
-  return executeAction(
+  return executeAction<IService>(
     async () => {
       const headers = await getAuthHeaders();
-      const response = await apiClient.delete(endpoint, { headers });
+      const response = await apiClient.delete<IService>(endpoint, { headers });
 
       if (response.success) {
-        revalidateTag("services", "default");
-        revalidateTag(`service-${id}`, "default");
+        revalidateTag("services","max");
+        revalidateTag(`service-${id}`,"max");
         revalidatePath("/services");
         revalidatePath("/technician/services");
         revalidatePath("/admin/services");
@@ -146,4 +157,12 @@ export async function deleteService(
       fallbackMessage: "Failed to delete service",
     }
   );
-}
+};
+
+export {
+  getAllServices,
+  getServiceById,
+  createService,
+  updateService,
+  deleteService,
+};

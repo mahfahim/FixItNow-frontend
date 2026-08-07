@@ -1,47 +1,39 @@
 // src/actions/auth.actions.ts
+
 "use server";
 
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth-cookies";
-import type { ActionResponse } from "@/types/api.types";
-import type { IRegisterUser, ILoginUser } from "@/types";
+import type { ActionResponse } from "@/types";
+import type { IRegisterUser, ILoginUser, IUser } from "@/types";
 
 interface AuthTokens {
   accessToken?: string;
   refreshToken?: string;
 }
 
-/**
- * Registers a new user.
- * Endpoint: POST /api/auth/register
- */
-export async function register(
+const register = async (
   payload: IRegisterUser
-): Promise<ActionResponse<unknown>> {
+): Promise<ActionResponse<IUser>> => {
   const endpoint = "/api/auth/register";
 
-  return executeAction(
-    () => apiClient.post(endpoint, payload, { cache: "no-store" }),
+  return executeAction<IUser>(
+    () => apiClient.post<IUser>(endpoint, payload, { cache: "no-store" }),
     {
       method: "POST",
       endpoint,
       fallbackMessage: "User registration failed",
     }
   );
-}
+};
 
-/**
- * Logs a user in and, on success, persists the returned access/refresh
- * tokens into HttpOnly cookies.
- * Endpoint: POST /api/auth/login
- */
-export async function login(
+const login = async (
   payload: ILoginUser
-): Promise<ActionResponse<AuthTokens>> {
+): Promise<ActionResponse<AuthTokens>> => {
   const endpoint = "/api/auth/login";
 
-  return executeAction(
+  return executeAction<AuthTokens>(
     async () => {
       const response = await apiClient.post<AuthTokens>(
         endpoint,
@@ -61,14 +53,10 @@ export async function login(
       fallbackMessage: "User login failed",
     }
   );
-}
+};
 
-/**
- * Logs the current user out by clearing auth cookies. No backend call is
- * made, matching the original behavior.
- */
-export async function logout(): Promise<ActionResponse<undefined>> {
-  return executeAction(
+const logout = async (): Promise<ActionResponse<undefined>> => {
+  return executeAction<undefined>(
     async () => {
       await clearAuthCookies();
       return { success: true, message: "Logged out successfully" };
@@ -79,4 +67,10 @@ export async function logout(): Promise<ActionResponse<undefined>> {
       fallbackMessage: "Logout failed",
     }
   );
-}
+};
+
+export {
+   register, 
+   login,
+   logout 
+};
