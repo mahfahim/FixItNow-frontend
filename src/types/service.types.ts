@@ -24,6 +24,7 @@ export type IServiceFilterOptions = {
   limit?: string | number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  includeUnavailable?: boolean | string;
 };
 
 export const serviceSearchableFields = ["title", "description"];
@@ -33,4 +34,5 @@ export const serviceFilterableFields = [
   "technicianId",
   "minPrice",
   "maxPrice",
+  "includeUnavailable",
 ];

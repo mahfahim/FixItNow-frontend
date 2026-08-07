@@ -1,5 +1,5 @@
+// src/types/index.ts
 export * from "./enums";
-
 export * from "./auth.types";
 export * from "./category.types";
 export * from "./service.types";
@@ -217,9 +217,9 @@ export interface IFavoriteTechnician {
 }
 
 export interface IPaginatedMeta {
-  page: number;
-  limit: number;
-  total: number;
+  page?: number;
+  limit?: number;
+  total?: number;
   totalPage?: number;
 }
 
@@ -233,4 +233,19 @@ export interface ActionResponse<T = unknown> {
 
 export interface PaginatedActionResponse<T = unknown> extends ActionResponse<T[]> {
   bookings?: T[];
+}
+
+
+export interface NextFetchCacheConfig {
+  revalidate?: number | false;
+  tags?: string[];
+}
+
+export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
+export interface ApiRequestOptions {
+  headers?: HeadersInit;
+  timeoutMs?: number;
+  cache?: RequestCache;
+  next?: NextFetchCacheConfig;
 }

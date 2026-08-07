@@ -49,9 +49,3 @@ export enum NotificationType {
   REVIEW = "REVIEW",
 }
 
-export type IPaginationOptions = {
-  page?: number | string;
-  limit?: number | string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-};
