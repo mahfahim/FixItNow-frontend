@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, User as UserIcon } from "lucide-react";
 import { getAllUsers } from "../../../../../actions/admin.actions";
-import { UserStatusCard } from "../../_components/user-status-card";
+import { UserStatusCard } from "../../_components/user-status-form";
 import { IUser, PaginatedActionResponse } from "@/types";
 
 export default async function AdminUserDetailsPage({
