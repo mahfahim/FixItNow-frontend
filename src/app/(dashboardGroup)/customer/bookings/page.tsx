@@ -1,10 +1,10 @@
+// src/app/(dashboardGroup)/customer/bookings/page.tsx
 import { Suspense } from "react";
 import { getCustomerBookings } from "@/actions/booking.actions";
-import { BookingCustomerView } from "../_components/booking-customer";
+import { BookingCustomerView } from "@/components/share/BookingCustomerView";
 import { CalendarCheck, AlertCircle, Loader2 } from "lucide-react";
 import { BookingStatus } from "@/types";
 
-//  1. Force dynamic rendering for cookie/auth actions
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -24,7 +24,8 @@ export default async function CustomerBookingsPage({ searchParams }: PageProps) 
 
     const bookings = res?.data || [];
     const isSuccess = res?.success ?? true;
-    const errorMessage = res?.error || res?.message || "Failed to load bookings. Please try again.";
+    const errorMessage =
+        res?.error || res?.message || "Failed to load bookings. Please try again.";
 
     return (
         <div className="p-6 space-y-6">
@@ -49,12 +50,14 @@ export default async function CustomerBookingsPage({ searchParams }: PageProps) 
                 </div>
             )}
 
-            {/* ✅ 2. Wrap client view in Suspense */}
-            <Suspense fallback={
-                <div className="flex items-center justify-center p-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                </div>
-            }>
+            {/* Client View Component */}
+            <Suspense
+                fallback={
+                    <div className="flex items-center justify-center p-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    </div>
+                }
+            >
                 <BookingCustomerView
                     bookings={bookings}
                     currentStatus={resolvedParams.status}

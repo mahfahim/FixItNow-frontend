@@ -1,4 +1,4 @@
-
+// src/components/share/reusable-card-list.tsx
 "use client";
 
 import React from "react";
@@ -163,7 +163,7 @@ export function ReusableCardList({
                                                 Price
                                             </span>
                                             <p className="text-lg font-bold text-indigo-600">
-                                                ৳{service.price}
+                                                ${service.price}
                                             </p>
                                         </div>
                                         <div className="text-right">

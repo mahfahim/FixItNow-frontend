@@ -1,10 +1,9 @@
-
 "use client";
 
 import React, { useState, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createBooking } from "@/actions/booking.actions";
-import { createPaymentIntent } from "@/app/(payment)/_actions/payment.actions";
+import { createPaymentIntent } from "@/actions/payment.actions";
 import { PaymentProvider } from "@/types";
 import {
     Calendar,
@@ -78,12 +77,12 @@ export default function NewBookingPage() {
                 provider: "STRIPE" as PaymentProvider,
             });
 
-            const gatewayUrl = res?.gatewayUrl || res?.data?.url || res?.url;
+            const gatewayUrl = res?.data?.gatewayUrl;
 
             if (res?.success && gatewayUrl) {
                 window.location.href = gatewayUrl;
             } else {
-                setErrorMsg(res?.message || "Failed to initialize payment gateway.");
+                setErrorMsg(res?.error || res?.message || "Failed to initialize payment gateway.");
                 setIsPaying(false);
             }
         } catch (err) {
