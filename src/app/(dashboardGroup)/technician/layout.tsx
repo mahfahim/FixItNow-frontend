@@ -16,7 +16,7 @@ export default function TechnicianLayout({ children }: DashboardLayoutProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [user, setUser] = useState<IUser | null>(null);
 
-    // Dynamic profile fetch
+    
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {

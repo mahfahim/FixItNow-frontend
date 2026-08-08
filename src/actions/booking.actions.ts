@@ -17,9 +17,6 @@ import type {
 } from "@/types";
 
 
-
-
-
 const createBooking = async (
   payload: ICreateBookingPayload
 ): Promise<ActionResponse<IBooking>> => {
@@ -46,9 +43,6 @@ const createBooking = async (
     }
   );
 };
-
-
-
 
 
 const getUserBookings = async (
@@ -206,11 +200,13 @@ const completeBookingJob = async (
   });
 };
 
+const getMyBookings = getCustomerBookings;
 
 export {
   createBooking,
   getUserBookings,
   getCustomerBookings,
+  getMyBookings,
   getTechnicianBookings,
   getBookingById,
   getTechnicianBookingById,

@@ -2,7 +2,7 @@
 
 'use server';
 
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
@@ -22,7 +22,7 @@ import type {
 const getReviews = async (
   options: IReviewFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<IReview[]>> => {
-  const endpoint = `/api/reviews${buildQueryString(options)}`;
+  const endpoint = `/api/review${buildQueryString(options)}`;
 
   return executeAction<IReview[]>(
     async () => {
@@ -50,7 +50,7 @@ const getReviews = async (
 const getMyReviews = async (
   options: IReviewFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<IReview[]>> => {
-  const endpoint = `/api/reviews/my-reviews${buildQueryString(options)}`;
+  const endpoint = `/api/review/my-reviews${buildQueryString(options)}`;
 
   return executeAction<IReview[]>(
     async () => {
@@ -58,7 +58,7 @@ const getMyReviews = async (
       return apiClient.get<IReview[]>(endpoint, {
         headers,
         next: {
-          revalidate: 60,
+          revalidate: 0,
           tags: ["reviews", "my-reviews"],
         },
       });
@@ -79,7 +79,7 @@ const getTechnicianReviews = async (
   technicianId: string,
   options: IReviewFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<IReview[]>> => {
-  const endpoint = `/api/reviews/technician/${technicianId}${buildQueryString(options)}`;
+  const endpoint = `/api/review/technician/${technicianId}${buildQueryString(options)}`;
 
   return executeAction<IReview[]>(
     async () => {
@@ -107,7 +107,7 @@ const getTechnicianReviews = async (
 const getReviewByBookingId = async (
   bookingId: string
 ): Promise<ActionResponse<IReview>> => {
-  const endpoint = `/api/reviews/booking/${bookingId}`;
+  const endpoint = `/api/review/booking/${bookingId}`;
 
   return executeAction<IReview>(
     async () => {
@@ -135,7 +135,7 @@ const getReviewByBookingId = async (
 const createReview = async (
   payload: ICreateReviewPayload
 ): Promise<ActionResponse<IReview>> => {
-  const endpoint = "/api/reviews";
+  const endpoint = "/api/review";
 
   return executeAction<IReview>(
     async () => {
@@ -146,6 +146,9 @@ const createReview = async (
         revalidateTag("reviews","max");
         revalidateTag("my-reviews","max");
         revalidateTag("customer-bookings","max");
+
+        revalidatePath("/customer/reviews");
+        revalidatePath("/customer/bookings");
       } 
 
       return response;
