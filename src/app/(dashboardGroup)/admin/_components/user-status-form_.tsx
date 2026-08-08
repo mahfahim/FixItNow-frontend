@@ -4,7 +4,7 @@
 
 import { UserStatus } from "@/types";
 import { updateUserStatus } from "@/actions/admin.actions";
-import { StatusToggleCard } from "@/components/share/status-toggle-card";
+import { StatusToggleCard } from "@/components/share/admin-status-toggle-card";
 
 interface UserStatusCardProps {
   userId: string;

@@ -21,7 +21,7 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
     notFound();
   }
 
-  // Handle both nested payload responses and direct model returns
+  
   const category = ((res.data as { data?: ICategory }).data || res.data) as ICategory;
 
   return (

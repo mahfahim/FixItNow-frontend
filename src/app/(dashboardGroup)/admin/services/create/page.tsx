@@ -9,7 +9,7 @@ import { ICategory, ITechnician, IUser } from "@/types";
 export const dynamic = "force-dynamic";
 
 export default async function CreateServicePage() {
-    // 2. Fetch technicians along with profile and categories
+    
     const [profileRes, categoriesRes, techniciansRes] = await Promise.all([
         getMyProfile(),
         getAllCategories({ useCache: false }),
