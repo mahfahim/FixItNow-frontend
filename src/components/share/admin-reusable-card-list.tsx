@@ -17,11 +17,11 @@ import {
     Layers,
     ImageIcon,
 } from "lucide-react";
-import { IService, IPaginatedMeta } from "@/types";
+import { IService, IPaginationOptions } from "@/types";
 
 interface ReusableCardListProps {
     items: IService[];
-    meta?: IPaginatedMeta;
+    meta?: IPaginationOptions;
     loading?: boolean;
     searchTerm: string;
     onSearchChange: (value: string) => void;

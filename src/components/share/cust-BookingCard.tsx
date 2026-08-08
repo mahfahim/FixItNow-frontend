@@ -7,7 +7,7 @@ import { IBooking, BookingStatus, PaymentStatus, PaymentProvider } from "@/types
 import { cancelCustomerBooking } from "@/actions/booking.actions";
 import { createPaymentIntent } from "@/actions/payment.actions";
 import { cancelBookingSchema } from "@/act-schema/booking.schema";
-import CreateReviewModal from "@/app/(dashboardGroup)/customer/_components/CreateReviewModal";
+import CreateReviewModal from "@/components/share/cust-CreateReviewModal";
 import { useToast } from "@/providers/toast-provider";
 
 import { Button } from "@/components/ui/button";

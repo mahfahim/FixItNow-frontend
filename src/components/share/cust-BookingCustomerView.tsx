@@ -4,21 +4,29 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { IBooking, BookingStatus } from "@/types";
-import { BookingCard } from "./BookingCard";
+import { BookingCard } from "./cust-BookingCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, CheckCircle2 } from "lucide-react";
+import { CalendarCheck, AlertCircle, Search, CheckCircle2 } from "lucide-react";
 
 export interface BookingCustomerViewProps {
     bookings: IBooking[];
+    isSuccess?: boolean;
+    errorMessage?: string;
     currentStatus?: string;
+    title?: string;
+    description?: string;
     browseLink?: string;
 }
 
 export function BookingCustomerView({
     bookings,
+    isSuccess = true,
+    errorMessage = "Failed to load bookings. Please try again.",
     currentStatus,
+    title = "My Service Bookings",
+    description = "Track your requested services, scheduled visits, and completed jobs.",
     browseLink = "/customer/dashboard/technicians",
 }: BookingCustomerViewProps) {
     const [activeTab, setActiveTab] = useState<string>(currentStatus || "ALL");
@@ -46,7 +54,28 @@ export function BookingCustomerView({
     });
 
     return (
-        <div className="space-y-6">
+        <div className="p-6 space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <CalendarCheck className="h-6 w-6 text-blue-600" />
+                        {title}
+                    </h1>
+                    <p className="text-sm text-slate-600 mt-1">
+                        {description}
+                    </p>
+                </div>
+            </div>
+
+            {/* Error Alert */}
+            {!isSuccess && (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3 text-rose-700 text-sm">
+                    <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+                    <p>{errorMessage}</p>
+                </div>
+            )}
+
             {/* Filter Tabs & Search Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/70 p-1.5 rounded-2xl border border-slate-200/60">
                 <div className="flex items-center gap-1.5 overflow-x-auto p-1 no-scrollbar">

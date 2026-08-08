@@ -4,7 +4,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // ✅ Imported Next.js Image component
+import Image from "next/image";
 import { useToast } from "@/providers/toast-provider";
 import {
     Card,
