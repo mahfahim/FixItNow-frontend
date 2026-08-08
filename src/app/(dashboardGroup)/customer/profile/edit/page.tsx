@@ -12,7 +12,7 @@ import {
     UpdateUserProfileInput,
 } from "@/act-schema/getMe.schema";
 import { getMyProfile, updateMyProfile } from "@/actions/getMe.action";
-import { GetMeCustomer } from "../../_components/getMe-customer";
+import { GetMeCustomer } from "../../_components/getMe-customer_";
 import { IUser, ActionResponse } from "@/types";
 import { ArrowLeft, Save, Loader2, User, Mail, Lock, Image as ImageIcon } from "lucide-react";
 

@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [user, setUser] = useState<IUserProfile | null>(null);
 
-    // Dynamic profile fetch
+    
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {

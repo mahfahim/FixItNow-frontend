@@ -66,7 +66,7 @@ export function TechnicianFilters() {
             if (sortOrder) params.set("sortOrder", sortOrder);
         }
 
-        params.set("page", "1"); // ফিল্টার পরিবর্তন করলে প্রথম পেজে রিসেট হবে
+        params.set("page", "1"); 
         router.push(`?${params.toString()}`);
         success("Filters Applied", "Technician search parameters updated.");
     };

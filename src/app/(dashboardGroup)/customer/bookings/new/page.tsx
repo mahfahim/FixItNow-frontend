@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createBooking } from "@/actions/booking.actions";
 import { createPaymentIntent } from "@/actions/payment.actions";
@@ -17,9 +17,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function NewBookingPage() {
-    const searchParams = useSearchParams();
+function BookingForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const serviceId = searchParams.get("serviceId") || "";
     const serviceTitle = searchParams.get("serviceTitle") || "Selected Service";
@@ -261,5 +261,14 @@ export default function NewBookingPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+
+export default function NewBookingPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center text-xs">Loading booking form...</div>}>
+            <BookingForm />
+        </Suspense>
     );
 }

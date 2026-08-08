@@ -1,3 +1,4 @@
+// src/app/(dashboardGroup)/customer/services/[service-id]/page.tsx
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -20,7 +21,6 @@ interface SingleServicePageProps {
     }>;
 }
 
-// Extend IService to safely cover backend variations (like loose rating or image properties)
 type DetailedService = IService & {
     rating?: number | string;
     imageUrl?: string;
@@ -40,13 +40,13 @@ export default async function SingleServicePage({ params }: SingleServicePagePro
 
     const service = res.data;
 
-    // Category Name Resolution
+
     const categoryName =
         typeof service.category === "object"
             ? service.category?.name
             : service.category || "General";
 
-    // Image URL Resolution
+
     const serviceImageUrl =
         (Array.isArray(service.images) && service.images.length > 0 ? service.images[0] : null) ||
         service.imageUrl ||
@@ -54,11 +54,12 @@ export default async function SingleServicePage({ params }: SingleServicePagePro
         service.img ||
         "";
 
+
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-8 text-slate-900">
             {/* Back Link */}
             <Link
-                href="/customer/dashboard/services"
+                href="/services"
                 className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
@@ -165,6 +166,7 @@ export default async function SingleServicePage({ params }: SingleServicePagePro
                         </div>
 
                         <div className="space-y-3 pt-2">
+                            {/* 🛠️ UPDATED: Redirects through login flow directly to the booking form */}
                             <Link
                                 href={`/customer/bookings/new?serviceId=${serviceId}`}
                                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/25"

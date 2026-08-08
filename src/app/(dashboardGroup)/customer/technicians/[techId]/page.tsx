@@ -21,7 +21,7 @@ interface SingleTechnicianPageProps {
     }>;
 }
 
-// Extend ITechnician to safely support potential backend fallbacks/aliases
+
 type DetailedTechnician = ITechnician & {
     name?: string;
     email?: string;
@@ -51,7 +51,7 @@ export default async function SingleTechnicianPage({ params }: SingleTechnicianP
     const name = tech.user?.name || tech.name || "Technician Profile";
     const email = tech.user?.email || tech.email;
 
-    // Image Resolution
+
     const image =
         tech.profileImage ||
         tech.user?.profileImage ||

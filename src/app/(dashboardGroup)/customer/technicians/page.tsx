@@ -1,5 +1,5 @@
 import { getAllTechnicians } from "@/actions/technician.actions";
-import { TechniciansClientList } from "../_components/technicians-client-list";
+import { TechniciansClientList } from "../_components/technicians-client-list_";
 import { Users } from "lucide-react";
 import {
     ITechnicianFilterOptions,
@@ -25,7 +25,7 @@ interface PageProps {
 export default async function TechniciansPage({ searchParams }: PageProps) {
     const resolvedSearchParams = await searchParams;
 
-    // Filters for Server Actions matching Backend DTO
+    
     const queryFilters: ITechnicianFilterOptions & IPaginationOptions = {
         search: resolvedSearchParams.search || resolvedSearchParams.searchTerm,
         city: resolvedSearchParams.city,
@@ -37,7 +37,7 @@ export default async function TechniciansPage({ searchParams }: PageProps) {
         sortOrder: resolvedSearchParams.sortOrder || "desc",
     };
 
-    // First Load Initial Fetching on Server Side with explicit Generic typing
+    
     const initialData = (await getAllTechnicians(queryFilters)) as ActionResponse<ITechnician[]>;
 
     return (

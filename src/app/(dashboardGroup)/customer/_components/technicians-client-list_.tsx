@@ -3,8 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAllTechnicians } from "@/actions/technician.actions";
-import { TechnicianCustomerCard } from "./technician-view-customer";
-import { TechnicianFilters } from "./technician-filters";
+import { TechnicianCustomerCard } from "./technician-view-customer_";
+import { TechnicianFilters } from "./technician-filters_";
 import { ActionResponse, ITechnician, ITechnicianFilterOptions, IPaginationOptions } from "@/types";
 import { AlertCircle, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,11 +41,11 @@ export function TechniciansClientList({
 
     const technicians: ITechnician[] = Array.isArray(response?.data) ? response.data : [];
 
-    const meta = response?.meta || {
-        page: Number(queryFilters.page || 1),
-        limit: Number(queryFilters.limit || 9),
-        total: technicians.length,
-        totalPage: 1,
+    const meta = {
+        page: Number(response?.meta?.page ?? queryFilters.page ?? 1),
+        limit: Number(response?.meta?.limit ?? queryFilters.limit ?? 9),
+        total: Number(response?.meta?.total ?? technicians.length),
+        totalPage: Number(response?.meta?.totalPage ?? 1),
     };
 
     const updateQueryParams = (newParams: Record<string, string | number>) => {
