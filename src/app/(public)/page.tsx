@@ -5,7 +5,6 @@ import {
     ShieldCheck,
     Clock,
     CheckCircle2,
-    PhoneCall,
     ArrowRight,
     Sparkles,
     UserCheck,

@@ -1,5 +1,4 @@
 // src/app/(public)/technicians/[id]/page.tsx
-
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,8 +13,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-import { getTechnicianById } from "../../_actions/technician.actions";
-import { ITechnician, IReview } from "@/types";
+import { getTechnicianById } from "@/actions/technician.actions";
+import { IReview } from "@/types";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -23,9 +22,10 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
-  const technician = await getTechnicianById(id);
+  const res = await getTechnicianById(id);
+  const technician = res.data;
 
-  if (!technician) {
+  if (!res.success || !technician) {
     return { title: "Technician Not Found | FixItNow" };
   }
 
@@ -37,12 +37,13 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function TechnicianDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const technician: ITechnician | null = await getTechnicianById(id);
+  const res = await getTechnicianById(id);
 
-  if (!technician) {
+  if (!res.success || !res.data) {
     notFound();
   }
 
+  const technician = res.data;
   const reviews: IReview[] = technician.reviewsReceived || [];
   const totalReviews = technician.totalReviews ?? reviews.length;
 
@@ -123,7 +124,7 @@ export default async function TechnicianDetailPage({ params }: PageProps) {
               </div>
 
               <Link
-                href="/services"
+                href={`/services?technicianId=${technician.id}`}
                 className="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
               >
                 Explore Services
