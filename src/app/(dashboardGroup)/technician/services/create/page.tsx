@@ -1,33 +1,22 @@
-// src/app/(dashboardGroup)/technician/services/create/page.tsx
 import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
-import { ServiceForm } from "../../_components/service-form";
+import { getAllCategories } from "@/actions/category.actions";
+import { ServiceForm } from "../../_components/service-form_";
 import { ArrowLeft } from "lucide-react";
-import { ICategory, IUser, ActionResponse } from "@/types";
+import { ICategory, IUser } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL;
-
-async function getCategories(): Promise<ICategory[]> {
-    try {
-        const res = await fetch(`${BASE_URL}/api/categories`, { cache: "no-store" });
-        const responseData = await res.json();
-        return responseData?.data || [];
-    } catch (error) {
-        console.error("Failed to fetch categories:", error);
-        return [];
-    }
-}
-
 export default async function CreateServicePage() {
-    const [profileRes, categories] = await Promise.all([
-        getMyProfile() as Promise<ActionResponse<IUser>>,
-        getCategories(),
+    const [profileRes, categoriesRes] = await Promise.all([
+        getMyProfile(),
+        getAllCategories({ useCache: false }),
     ]);
 
-    const user = profileRes?.data;
+    const user = profileRes?.data as IUser | undefined;
     const technicianId = user?.technicianProfile?.id || user?.id;
+
+    const categories = ((categoriesRes?.data) as ICategory[]);
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">

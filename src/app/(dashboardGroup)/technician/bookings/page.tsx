@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { getTechnicianBookings } from "@/actions/booking.actions";
 import { IBooking, BookingStatus, ActionResponse } from "@/types";
-import { StatusBadge } from "../_components/booking-status-badge";
-import { BookingActionsClient } from "../_components/booking-actions-client";
+import { StatusBadge } from "../_components/booking-status-badge_";
+import { BookingActionsClient } from "../_components/booking-actions-client_";
 import { Calendar, Clock, MapPin, Eye, Search, Filter } from "lucide-react";
 
 interface PageProps {
@@ -21,10 +21,12 @@ export default async function TechnicianBookingsPage({ searchParams }: PageProps
     const searchTerm = resolvedSearchParams.searchTerm || "";
     const page = Number(resolvedSearchParams.page) || 1;
 
-    const response = (await getTechnicianBookings(
-        { status: statusFilter, searchTerm },
-        { page, limit: 10 }
-    )) as ActionResponse<IBooking[]>;
+    const response = (await getTechnicianBookings({
+        status: statusFilter,
+        searchTerm,
+        page,
+        limit: 10,
+    })) as ActionResponse<IBooking[]>;
 
     console.log("Technician Bookings API Response:", JSON.stringify(response, null, 2));
 

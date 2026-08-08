@@ -1,5 +1,5 @@
 import { getMyProfile } from "@/actions/getMe.action";
-import { ProfileForm } from "../../_components/profile-form";
+import { ProfileForm } from "../../_components/profile-form_";
 import { IUser, ITechnician, ActionResponse } from "@/types";
 import { UserCog } from "lucide-react";
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getAvailability } from "@/actions/technician.actions";
-import { AvailabilityForm } from "../../_components/availability-form";
+import { AvailabilityForm } from "../../_components/availability-form_";
 import { ActionResponse, IAvailabilitySlot } from "@/types";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 

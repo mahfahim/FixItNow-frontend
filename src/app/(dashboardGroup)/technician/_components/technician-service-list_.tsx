@@ -2,15 +2,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ReusableCardList } from "@/components/share/reusable-card-list";
+import { ReusableCardList } from "@/components/share/admin-reusable-card-list";
 import { getAllServices } from "@/actions/services.actions";
-import { IService, ActionResponse, IPaginatedMeta } from "@/types";
-import { ServiceDeleteButton } from "./service-delete-button";
+import { IService, ActionResponse, IPaginationOptions } from "@/types";
+import { ServiceDeleteButton } from "./service-delete-button_";
 
 interface TechnicianServiceListProps {
     technicianId: string;
     initialServices?: IService[];
-    initialMeta?: IPaginatedMeta;
+    initialMeta?: IPaginationOptions;
 }
 
 export function TechnicianServiceList({
@@ -19,7 +19,7 @@ export function TechnicianServiceList({
     initialMeta,
 }: TechnicianServiceListProps) {
     const [services, setServices] = useState<IService[]>(initialServices);
-    const [meta, setMeta] = useState<IPaginatedMeta | undefined>(initialMeta);
+    const [meta, setMeta] = useState<IPaginationOptions | undefined>(initialMeta);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [page, setPage] = useState(1);

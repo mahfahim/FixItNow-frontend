@@ -1,8 +1,9 @@
-// src/app/(dashboardGroup)/technician/_components/service-form.tsx
+// src/app/(dashboardGroup)/_components/service-form.tsx
+// src/app/(dashboardGroup)/_components/service-form.tsx
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createService, updateService } from "@/actions/services.actions";
 import { ICategory, IService } from "@/types";
 import {
@@ -36,6 +37,7 @@ interface ServiceFormProps {
     categories: ICategory[];
     initialData?: IService | null;
     technicianId?: string;
+    redirectPath?: string;
 }
 
 interface FormDataState {
@@ -53,10 +55,15 @@ export function ServiceForm({
     categories,
     initialData,
     technicianId,
+    redirectPath,
 }: ServiceFormProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const { success, error } = useToast();
     const isEdit = Boolean(initialData);
+
+    const targetRedirectPath =
+        redirectPath || (pathname.startsWith("/admin") ? "/admin/services" : "/technician/services");
 
     const [loading, setLoading] = useState(false);
 
@@ -109,13 +116,14 @@ export function ServiceForm({
                     serviceArea: parsedServiceArea,
                     images: parsedImages,
                     isAvailable: formData.isAvailable,
+                    ...(technicianId ? { technicianId } : {}),
                 };
 
                 const res = await updateService(initialData.id, payload);
 
                 if (res?.success) {
                     success("Service Updated", res?.message || "Service updated successfully.");
-                    router.push("/technician/services");
+                    router.push(targetRedirectPath);
                     router.refresh();
                 } else {
                     error("Update Failed", res?.message || "Failed to update service.");
@@ -137,7 +145,7 @@ export function ServiceForm({
 
                 if (res?.success) {
                     success("Service Created", res?.message || "Service created successfully.");
-                    router.push("/technician/services");
+                    router.push(targetRedirectPath);
                     router.refresh();
                 } else {
                     error("Creation Failed", res?.message || "Failed to create service.");
@@ -190,7 +198,7 @@ export function ServiceForm({
                                 <Select
                                     value={formData.categoryId}
                                     onValueChange={(val: string | null) =>
-                                        setFormData((prev) => ({ ...prev, categoryId: val ?? "" }))
+                                        setFormData((prev) => ({ ...prev, categoryId: val || "" }))
                                     }
                                 >
                                     <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white text-slate-900 h-10 text-xs sm:text-sm focus:ring-2 focus:ring-blue-600">
@@ -226,7 +234,7 @@ export function ServiceForm({
                         </div>
                     </div>
 
-                    {/* Section 2: Pricing & Execution */}
+                    {/* Section 2: Execution & Locations */}
                     <div className="space-y-4">
                         <div className="border-b border-slate-100 pb-2">
                             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">

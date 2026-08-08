@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
 import { getAllServices } from "@/actions/services.actions";
-import { IService, IUser, ActionResponse, IPaginatedMeta } from "@/types";
-import { TechnicianServiceList } from "../_components/technician-service-list";
+import { IService, IUser, ActionResponse, IPaginationOptions } from "@/types";
+import { TechnicianServiceList } from "../_components/technician-service-list_";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function TechnicianServicesPage() {
     const user = profileRes?.data;
     const technicianId = user?.technicianProfile?.id || user?.id || "";
 
-    // Initial SSR Data Fetching
+    
     const servicesRes = (await getAllServices({
         technicianId,
         page: 1,
@@ -22,7 +22,7 @@ export default async function TechnicianServicesPage() {
     })) as ActionResponse<IService[]>;
 
     const initialServices: IService[] = servicesRes?.data || [];
-    const initialMeta: IPaginatedMeta | undefined = servicesRes?.meta;
+    const initialMeta: IPaginationOptions | undefined = servicesRes?.meta;
 
     return (
         <div className="max-w-6xl mx-auto space-y-6">

@@ -4,15 +4,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTechnicianBookingById } from "@/actions/booking.actions";
 import { IBooking } from "@/types";
-import { StatusBadge } from "../../_components/booking-status-badge";
-import { BookingActionsClient } from "../../_components/booking-actions-client";
+import { StatusBadge } from "../../_components/booking-status-badge_";
+import { BookingActionsClient } from "../../_components/booking-actions-client_";
 import {
     ArrowLeft,
     Calendar,
     Clock,
     MapPin,
     User,
-    DollarSign,
     FileText,
     History,
 } from "lucide-react";
