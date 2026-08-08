@@ -1,10 +1,7 @@
 // src/act-schema/getMe.schema.ts
 import { z } from "zod";
 
-/**
- * Schema for updating customer profile info
- * Matches: IUpdateUserProfile
- */
+
 export const updateUserProfileSchema = z.object({
   name: z
     .string()
@@ -14,9 +11,9 @@ export const updateUserProfileSchema = z.object({
   profileImage: z
     .string()
     .url("Must be a valid URL")
-    .optional(), // Added from backend
+    .optional(), 
 });
 
-// Inferred TypeScript type from Zod Schema
+
 export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;
 
