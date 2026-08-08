@@ -11,18 +11,10 @@ import { getCacheConfig, BaseCacheOptions } from "@/lib/cache-utils";
 import type { ActionResponse } from "@/types";
 import type {
   ICategory,
-  ICategoryFilterOptions,
-  IPaginationOptions,
   ICreateCategoryPayload,
   IUpdateCategoryPayload,
+  GetCategoriesOptions,
 } from "@/types";
-
-
-
-interface GetCategoriesOptions
-  extends BaseCacheOptions,
-    ICategoryFilterOptions,
-    IPaginationOptions {}
 
 
 
@@ -30,14 +22,22 @@ interface GetCategoriesOptions
 const getAllCategories = async (
   options: GetCategoriesOptions = {}
 ): Promise<ActionResponse<ICategory[]>> => {
-  const { useCache = true, cache, revalidateSeconds, tags, ...filterOptions } = options;
-  const endpoint = `/api/categories${buildQueryString(filterOptions)}`;
+  const { useCache = true, cache, revalidateSeconds, tags, searchTerm, ...filterOptions } = options;
+
+  const apiFilters = {
+      ...filterOptions,
+      search: searchTerm,
+  };
+
+  const endpoint = `/api/categories${buildQueryString(apiFilters)}`;
+
+  const shouldCache = searchTerm ? false : useCache;
 
   const fetchConfig = getCacheConfig({
-    useCache,
-    cache,
-    revalidateSeconds,
-    tags: ["categories", ...(tags || [])],
+      useCache: shouldCache,
+      cache: shouldCache ? cache : "no-store",
+      revalidateSeconds,
+      tags: ["categories", ...(tags || [])],
   });
 
   return executeAction<ICategory[]>(
@@ -171,8 +171,6 @@ const deleteCategory = async (id: string): Promise<ActionResponse<ICategory>> =>
 
 
 
-
-export type { GetCategoriesOptions };
 export {
   createCategory,
   getAllCategories,

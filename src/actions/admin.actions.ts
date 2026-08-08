@@ -6,8 +6,8 @@ import { apiClient } from "@/lib/api-client";
 import { executeAction } from "@/lib/request-wrapper";
 import { getAuthHeaders } from "@/lib/getAuthHeaders";
 import { buildQueryString } from "@/lib/query-string";
-import type { ActionResponse } from "@/types";
 import type {
+  ActionResponse,
   IUser,
   IBooking,
   ICategory,
@@ -15,26 +15,15 @@ import type {
   IUpdateUserStatusPayload,
   IPaginationOptions,
   ICreateCategoryPayload,
-  BookingStatus,
-  PaymentStatus,
+  GetBookingsOptions,
 } from "@/types";
 
-interface IBookingAdminFilterOptions extends IPaginationOptions {
-  search?: string;
-  status?: BookingStatus | string;
-  paymentStatus?: PaymentStatus | string;
-}
 
 const getAllUsers = async (
   options: IUserFilterOptions & IPaginationOptions = {}
 ): Promise<ActionResponse<IUser[]>> => {
-  const queryOptions: Record<string, unknown> = { ...options };
-  if (queryOptions.searchTerm) {
-    queryOptions.search = queryOptions.searchTerm;
-    delete queryOptions.searchTerm;
-  }
-
-  const endpoint = `/api/admin/users${buildQueryString(queryOptions)}`;
+  
+  const endpoint = `/api/admin/users${buildQueryString(options)}`;
 
   return executeAction<IUser[]>(
     async () => {
@@ -81,7 +70,7 @@ const updateUserStatus = async (
 };
 
 const getAllBookingsAdmin = async (
-  options: IBookingAdminFilterOptions = {}
+  options: GetBookingsOptions = {}
 ): Promise<ActionResponse<IBooking[]>> => {
   const queryOptions: Record<string, unknown> = { ...options };
   const endpoint = `/api/admin/bookings${buildQueryString(queryOptions)}`;
@@ -153,7 +142,6 @@ const createCategory = async (
   );
 };
 
-export type { IBookingAdminFilterOptions };
 export {
   getAllUsers,
   updateUserStatus,

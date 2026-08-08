@@ -144,8 +144,9 @@ const createReview = async (
 
       if (response.success) {
         revalidateTag("reviews","max");
+        revalidateTag("my-reviews","max");
         revalidateTag("customer-bookings","max");
-      }
+      } 
 
       return response;
     },

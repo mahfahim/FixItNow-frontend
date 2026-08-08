@@ -13,11 +13,9 @@ import type {
   IBooking,
   ICreateBookingPayload,
   IUpdateBookingStatusPayload,
-  IBookingFilterOptions,
-  IPaginationOptions,
+  GetBookingsOptions,
 } from "@/types";
 
-interface GetBookingsOptions extends IBookingFilterOptions, IPaginationOptions {}
 
 
 
@@ -208,7 +206,7 @@ const completeBookingJob = async (
   });
 };
 
-export type { GetBookingsOptions };
+
 export {
   createBooking,
   getUserBookings,

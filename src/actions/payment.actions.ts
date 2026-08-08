@@ -15,13 +15,8 @@ import type {
   ICreatePaymentPayload,
   IConfirmPaymentPayload,
   IRefundPaymentPayload,
+  ICreatePaymentResponse,
 } from "@/types";
-
-interface ICreatePaymentResponse {
-  payment: IPayment;
-  gatewayUrl: string;
-}
-
 
 
 
@@ -187,8 +182,6 @@ const refundPayment = async (
 
 
 
-
-export type { ICreatePaymentResponse };
 export {
   createPaymentIntent,
   confirmPayment,
