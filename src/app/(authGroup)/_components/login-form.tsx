@@ -8,7 +8,7 @@ import { Loader2, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import { login } from "@/actions/auth.actions";
-import { loginValidationSchema } from "@/app/(authGroup)/_schema/auth.schema";
+import { loginValidationSchema } from "@/act-schema/auth.schema";
 import { ILoginUser } from "@/types/auth.types";
 import { Role } from "@/types/enums";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ function getRoleFromToken(token: string): Role | null {
 
 export function LoginForm() {
   const router = useRouter();
+
   const [isPending, startTransition] = useTransition();
 
   const [formData, setFormData] = useState<ILoginUser>({
@@ -104,7 +105,7 @@ export function LoginForm() {
             router.push("/technician/");
             break;
           case Role.CUSTOMER:
-            router.push("/customer/");
+            router.push("/customer");
             break;
           default:
             router.push("/");

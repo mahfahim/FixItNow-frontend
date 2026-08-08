@@ -8,7 +8,7 @@ import { Loader2, Mail, Lock, User, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 import { register } from "@/actions/auth.actions";
-import { registerValidationSchema } from "@/app/(authGroup)/_schema/auth.schema";
+import { registerValidationSchema } from "@/act-schema/auth.schema";
 import { IRegisterUser } from "@/types/auth.types";
 import { Role } from "@/types/enums";
 import { Button } from "@/components/ui/button";
