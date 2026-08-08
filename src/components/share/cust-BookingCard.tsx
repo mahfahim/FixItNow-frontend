@@ -7,7 +7,7 @@ import { IBooking, BookingStatus, PaymentStatus, PaymentProvider } from "@/types
 import { cancelCustomerBooking } from "@/actions/booking.actions";
 import { createPaymentIntent } from "@/actions/payment.actions";
 import { cancelBookingSchema } from "@/act-schema/booking.schema";
-import CreateReviewModal from "@/components/share/cust-CreateReviewModal";
+import { CreateReviewModal } from "@/components/share/cust-CreateReviewModal";
 import { useToast } from "@/providers/toast-provider";
 
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ import {
     CheckCircle2,
     Info,
     ExternalLink,
-    Star,
+
 } from "lucide-react";
 
 export interface BookingCardProps {
@@ -56,7 +56,7 @@ export function BookingCard({ booking, onCancelSuccess, onReviewSuccess }: Booki
     const [isPending, startTransition] = useTransition();
     const [isPaying, setIsPaying] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
 
     const [isReviewed, setIsReviewed] = useState<boolean>(
         Boolean(
@@ -307,14 +307,12 @@ export function BookingCard({ booking, onCancelSuccess, onReviewSuccess }: Booki
                                 {booking.review?.rating ? `${booking.review.rating}.0 Rated` : "Rated"}
                             </Button>
                         ) : (
-                            <Button
-                                type="button"
-                                onClick={() => setIsReviewModalOpen(true)}
-                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs h-8 px-3 rounded-lg gap-1.5 font-medium shadow-xs"
-                            >
-                                <Star className="w-3.5 h-3.5 fill-white" />
-                                Write Review
-                            </Button>
+                            <CreateReviewModal
+                                onSuccess={() => {
+                                    setIsReviewed(true);
+                                    if (onReviewSuccess && bookingId) onReviewSuccess(bookingId);
+                                }}
+                            />
                         )
                     )}
                 </div>
@@ -375,21 +373,7 @@ export function BookingCard({ booking, onCancelSuccess, onReviewSuccess }: Booki
             </Dialog>
 
             {/* Review Modal */}
-            {isReviewModalOpen && bookingId && (
-                <CreateReviewModal
-                    isOpen={isReviewModalOpen}
-                    bookingId={bookingId}
-                    serviceTitle={serviceTitle}
-                    technicianName={techName}
-                    onClose={() => setIsReviewModalOpen(false)}
-                    onSuccess={() => {
-                        setIsReviewModalOpen(false);
-                        setIsReviewed(true);
-                        success("Review Submitted", "Thank you for sharing your feedback.");
-                        if (onReviewSuccess && bookingId) onReviewSuccess(bookingId);
-                    }}
-                />
-            )}
+
         </Card>
     );
 }
