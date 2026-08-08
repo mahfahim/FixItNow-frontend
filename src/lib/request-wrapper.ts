@@ -19,13 +19,15 @@ export async function executeAction<T>(
   } catch (error) {
     const apiError = toApiError(error);
 
-    logger.httpError({
-      method: context.method,
-      endpoint: context.endpoint,
-      statusCode: apiError.statusCode,
-      errorType: apiError.type,
-      message: apiError.message,
-    });
+    if (process.env.NEXT_PHASE !== "phase-production-build") {
+      logger.httpError({
+        method: context.method,
+        endpoint: context.endpoint,
+        statusCode: apiError.statusCode,
+        errorType: apiError.type,
+        message: apiError.message,
+      });
+    }
 
     return {
       success: false,

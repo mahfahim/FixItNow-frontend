@@ -1,5 +1,6 @@
+// src/app/(dashboardGroup)/customer/layout.tsx
 "use client";
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { DashboardHeader } from "../_components/dashboard-header";
 import { DashboardSidebar } from "../_components/dashboard-sidebar";
@@ -21,7 +22,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [user, setUser] = useState<IUserProfile | null>(null);
 
-    
+
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {

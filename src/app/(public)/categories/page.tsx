@@ -3,6 +3,8 @@ import CategoryGrid from "@/components/share/public-category-grid";
 import { getAllCategories } from "@/actions/category.actions";
 import { ICategory, IPaginationOptions } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
     searchParams: Promise<{
         search?: string;
