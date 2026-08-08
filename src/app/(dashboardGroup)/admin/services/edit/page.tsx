@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServiceById } from "@/actions/services.actions";
 import { getAllCategories } from "@/actions/category.actions";
-import { ServiceForm } from "../../_components/service-form";
+import { ServiceForm } from "../../_components/service-form_";
 import { ArrowLeft } from "lucide-react";
 import { ActionResponse, ICategory, IService } from "@/types";
 

@@ -3,7 +3,7 @@
 import { notFound } from "next/navigation";
 import { getCategoryById } from "@/actions/category.actions";
 import { ICategory } from "@/types";
-import CategoryForm from "../../../_components/CategoryForm";
+import CategoryForm from "../../../_components/CategoryForm_";
 
 interface EditCategoryPageProps {
   params: Promise<{ id: string }>;

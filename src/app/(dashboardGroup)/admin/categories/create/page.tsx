@@ -1,6 +1,6 @@
 // src/app/(dashboardGroup)/admin/categories/create/page.tsx
 
-import CategoryForm from "../../_components/CategoryForm";
+import CategoryForm from "../../_components/CategoryForm_";
 
 export const metadata = {
     title: "Create Category | Admin Dashboard",

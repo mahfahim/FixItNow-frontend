@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getMyProfile } from "@/actions/getMe.action";
 import { getAllCategories } from "@/actions/category.actions";
 import { getAllTechnicians } from "@/actions/technician.actions"; // 1. Import technician action
-import { ServiceForm } from "../../_components/service-form";
+import { ServiceForm } from "../../_components/service-form_";
 import { ArrowLeft } from "lucide-react";
 import { ICategory, ITechnician, IUser } from "@/types";
 
