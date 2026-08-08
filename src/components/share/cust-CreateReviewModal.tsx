@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Star, Loader2, Plus, AlertCircle, CheckCircle2 } from "lucide-react";
 
@@ -43,7 +43,7 @@ export function CreateReviewModal({ onSuccess }: CreateReviewModalProps) {
         register,
         handleSubmit,
         setValue,
-        watch,
+        control,
         reset,
         formState: { errors },
     } = useForm<CreateReviewFormValues>({
@@ -55,7 +55,12 @@ export function CreateReviewModal({ onSuccess }: CreateReviewModalProps) {
         },
     });
 
-    const selectedRating = watch("rating");
+    // React Compiler compatible watch method using useWatch hook
+    const selectedRating = useWatch({
+        control,
+        name: "rating",
+        defaultValue: 0,
+    });
 
     const handleOpenChange = async (isOpen: boolean) => {
         setOpen(isOpen);
