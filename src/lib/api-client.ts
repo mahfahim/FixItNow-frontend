@@ -3,7 +3,7 @@
 import { API_TIMEOUT_MS, DEFAULT_HEADERS, getBackendBaseUrl } from "./constants";
 import { createHttpApiError, toApiError } from "./api-error";
 import { buildQueryString } from "./query-string";
-import type { ActionResponse, ApiRequestOptions, HttpMethod } from "@/types/api.types";
+import type { ActionResponse, ApiRequestOptions, HttpMethod } from "@/types";
 
 export interface ExtendedApiRequestOptions extends ApiRequestOptions {
   params?: Record<string, unknown>;

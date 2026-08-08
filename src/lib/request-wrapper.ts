@@ -2,7 +2,7 @@
 
 import { logger } from "./logger";
 import { toApiError } from "./api-error";
-import type { ActionResponse } from "@/types/api.types";
+import type { ActionResponse } from "@/types";
 
 interface ActionContext {
   method: string;

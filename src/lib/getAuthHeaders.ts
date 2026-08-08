@@ -4,9 +4,6 @@
 import { cookies } from "next/headers";
 import { COOKIE_NAMES, DEFAULT_HEADERS } from "./constants";
 
-/**
- * Helper to retrieve authorization headers using centralized constants.
- */
 export async function getAuthHeaders() {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAMES.ACCESS_TOKEN)?.value;

@@ -17,7 +17,7 @@ export function getCacheConfig(options: BaseCacheOptions = {}) {
     tags = [],
   } = options;
 
-  // যদি useCache: false হয় অথবা cache: "no-store" পাস করা হয়
+  
   if (!useCache || cache === "no-store") {
     return {
       cache: "no-store" as RequestCache,
@@ -25,7 +25,7 @@ export function getCacheConfig(options: BaseCacheOptions = {}) {
     };
   }
 
-  // ডিফল্ট ক্যাচ কনফিগারেশন
+
   return {
     cache,
     next: {

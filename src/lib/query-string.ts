@@ -1,9 +1,5 @@
 // src/lib/query-string.ts
 
-/**
- * Serializes a flat options object into a URL query string, handling arrays
- * and skipping `undefined`, `null`, and empty-string values.
- */
 export function buildQueryString(
   options: Record<string, unknown> = {}
 ): string {
