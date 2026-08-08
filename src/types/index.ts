@@ -1,4 +1,5 @@
 // src/types/index.ts
+
 export * from "./enums";
 export * from "./auth.types";
 export * from "./category.types";
@@ -216,20 +217,25 @@ export interface IFavoriteTechnician {
   technician?: ITechnician;
 }
 
-export interface IPaginatedMeta {
+export interface IPaginationOptions extends Record<string, unknown> {
   page?: number;
   limit?: number;
   total?: number;
   totalPage?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
+
+
 
 export interface ActionResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
   error?: string;
-  meta?: IPaginatedMeta;
+  meta?: IPaginationOptions;
 }
+
 
 export interface PaginatedActionResponse<T = unknown> extends ActionResponse<T[]> {
   bookings?: T[];
@@ -248,4 +254,9 @@ export interface ApiRequestOptions {
   timeoutMs?: number;
   cache?: RequestCache;
   next?: NextFetchCacheConfig;
+}
+
+export interface ICreatePaymentResponse {
+  payment: IPayment;
+  gatewayUrl: string;
 }

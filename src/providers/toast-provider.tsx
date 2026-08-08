@@ -1,4 +1,3 @@
-
 // src/providers/toast-provider.tsx
 "use client";
 
@@ -11,43 +10,52 @@ interface ToastOptions {
   type?: ToastType;
   title: string;
   description?: string;
+  duration?: number;
 }
 
 interface ToastContextType {
   toast: (options: ToastOptions) => void;
-  success: (title: string, description?: string) => void;
-  error: (title: string, description?: string) => void;
-  info: (title: string, description?: string) => void;
-  warning: (title: string, description?: string) => void;
+  success: (title: string, description?: string, duration?: number) => void;
+  error: (title: string, description?: string, duration?: number) => void;
+  info: (title: string, description?: string, duration?: number) => void;
+  warning: (title: string, description?: string, duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const addToast = useCallback(({ type = "info", title, description }: ToastOptions) => {
-    if (typeof baseToast?.add === "function") {
-      baseToast.add({
-        title,
-        description,
-        type,
-      });
-    }
-  }, []);
+  const addToast = useCallback(
+    ({ type = "info", title, description, duration = 1000 }: ToastOptions) => {
+      if (typeof baseToast?.add === "function") {
+        baseToast.add({
+          title,
+          description,
+          type,
+          timeout: duration,
+        });
+      }
+    },
+    []
+  );
 
   const success = useCallback(
-    (title: string, description?: string) => addToast({ type: "success", title, description }),
+    (title: string, description?: string, duration?: number) =>
+      addToast({ type: "success", title, description, duration }),
     [addToast]
   );
   const error = useCallback(
-    (title: string, description?: string) => addToast({ type: "error", title, description }),
+    (title: string, description?: string, duration?: number) =>
+      addToast({ type: "error", title, description, duration }),
     [addToast]
   );
   const info = useCallback(
-    (title: string, description?: string) => addToast({ type: "info", title, description }),
+    (title: string, description?: string, duration?: number) =>
+      addToast({ type: "info", title, description, duration }),
     [addToast]
   );
   const warning = useCallback(
-    (title: string, description?: string) => addToast({ type: "warning", title, description }),
+    (title: string, description?: string, duration?: number) =>
+      addToast({ type: "warning", title, description, duration }),
     [addToast]
   );
 

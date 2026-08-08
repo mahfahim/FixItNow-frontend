@@ -1,4 +1,5 @@
 // src/types/payment.types.ts
+
 // src/types/payment.types.ts
 import { PaymentProvider, PaymentStatus } from "./enums";
 
@@ -20,14 +21,15 @@ export type IRefundPaymentPayload = {
   amount?: number;
 };
 
-export type IPaymentFilterOptions = {
+
+export interface IPaymentFilterOptions extends Record<string, unknown> {
   searchTerm?: string;
   status?: PaymentStatus;
   provider?: PaymentProvider;
   bookingId?: string;
   startDate?: string;
   endDate?: string;
-};
+}
 
 export type IInitiatePaymentInput = {
   transactionId: string;

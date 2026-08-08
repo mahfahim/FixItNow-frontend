@@ -1,12 +1,13 @@
 // src/types/booking.types.ts
-// src/types/booking.types.ts
+
 import { BookingStatus, PaymentStatus } from "./enums";
+import { IPaginationOptions} from "./index";
 
 export type ICreateBookingPayload = {
   serviceId: string;
   technicianId?: string;
-  scheduledDate: string; // ISO format e.g. "2026-08-01"
-  scheduledTime: string; // e.g. "10:00"
+  scheduledDate: string;
+  scheduledTime: string;
   address: string;
   addressId?: string;
   notes?: string;
@@ -19,11 +20,14 @@ export type IUpdateBookingStatusPayload = {
 };
 
 export type IBookingFilterOptions = {
+  search?: string;        
   searchTerm?: string;
-  status?: BookingStatus;
-  paymentStatus?: PaymentStatus;
+  status?: BookingStatus | string;  
+  paymentStatus?: PaymentStatus | string;
   startDate?: string;
   endDate?: string;
   customerId?: string;
   technicianId?: string;
 };
+
+export interface GetBookingsOptions extends IBookingFilterOptions, IPaginationOptions {};
